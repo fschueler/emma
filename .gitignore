@@ -10,6 +10,9 @@ target
 *.class
 *.iml
 dependency-reduced-pom.xml
+# Mac specific
+.DS_Store
+
 
 # Ensime specific
 .ensime
