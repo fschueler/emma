@@ -1,5 +1,6 @@
 package eu.stratosphere.emma.api.lara
 
+import eu.stratosphere.emma.api.linalg.ir.Idx
 import spire.math.Numeric
 
 import scala.collection.immutable.NumericRange
@@ -79,7 +80,10 @@ trait Vector[A] {
 
   def aggregate(f: (A, A) => A): A
 
+//  def indexedAggregate[B](f: (Idx[Int, A], Idx[Int, A]) => B): B
+
   def fold[B](z: B)(s: A => B, p: (B, B) => B): B
+//  def fold[B](z: B)(s: Idx[Int, A] => B, p: (B, B) => B): B
 
   def map[B: Numeric : ClassTag](f: (A) => B): Vector[B]
 

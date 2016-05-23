@@ -1,5 +1,6 @@
 package eu.stratosphere.emma.api.lara
 
+import eu.stratosphere.emma.api.linalg.ir.{VIdx, Idx}
 import spire.implicits._
 import spire.math._
 
@@ -153,6 +154,15 @@ private[emma] class DenseMatrix[A: Numeric : ClassTag](override val numRows: Int
     Vector[B](arr, isRowVector = true)
   }
 
+//  override
+//  def indexedRows[B: Numeric : ClassTag](f: Idx[Int, Vector[A]] => B): Vector[B] = {
+//    val arr = Array.ofDim[B](numRows)
+//    for (i <- rRange) {
+//      arr(i) = f(VIdx(i, row(i)))
+//    }
+//    Vector[B](arr, isRowVector = true)
+//  }
+
   override
   def rows[B: Numeric : ClassTag](f: Vector[A] => Vector[B]): Matrix[B] = {
     val arr = Array.ofDim[B](numRows * numCols)
@@ -192,7 +202,7 @@ private[emma] class DenseMatrix[A: Numeric : ClassTag](override val numRows: Int
   }
 
   override
-  private[emma] def map[B: Numeric : ClassTag](f: (A) => B): Matrix[B] = {
+  def map[B: Numeric : ClassTag](f: (A) => B): Matrix[B] = {
     val res: Array[B] = values.map(f(_))
     new DenseMatrix(numRows, numCols, res)
   }
