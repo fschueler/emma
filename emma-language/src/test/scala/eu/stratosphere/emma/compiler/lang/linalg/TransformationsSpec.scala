@@ -80,6 +80,19 @@ class TransformationsSpec extends BaseCompilerSpec {
       showCode(act)
     }
   }
+
+  "Synthetic" - {
+    "chain test" in {
+      val act = typeCheckAndANF(reify {
+        val m = Matrix.fill(2,2)((i, j) => 1)
+        val u = m - 3
+        val agg: Vector[Int] = u.rows((row: Vector[Int]) => row.aggregate(_ + _))
+        println(agg)
+      })
+
+      showCode(act)
+    }
+  }
 }
 
 object TransformationsSpec {

@@ -5,7 +5,7 @@ import eu.stratosphere.emma.compiler.lang.comprehension.Comprehension
 import eu.stratosphere.emma.compiler.lang.core.Core
 
 trait PushDown extends Common with Comprehension {
-  self: Core =>
+  self: Core with LinAlg =>
 
   import Term._
   import Tree._
@@ -84,6 +84,8 @@ trait PushDown extends Common with Comprehension {
         case val_(resultVal, Apply(Method.call(matrix, mthd, tpe, Seq(f)), impl), _)
           if (LA.m_rows.alternatives contains mthd) &&
             (Type.of(mthd).finalResultType <:< VectorTpe) =>
+
+          val ix = LinAlg.getRoots(tree, matrix.symbol)
 
           // 1. See if `matrix` is used otherwise
           if (meta.valuses(matrix.symbol) > 1) {
