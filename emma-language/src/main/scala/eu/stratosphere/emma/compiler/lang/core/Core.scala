@@ -4,6 +4,7 @@ package lang
 package core
 
 import emma.compiler.lang.comprehension.Comprehension
+import eu.stratosphere.emma.compiler.lang.linalg.PushDown
 
 /** Core language. */
 trait Core extends Common
@@ -12,7 +13,8 @@ trait Core extends Common
   with CSE
   with PatternMatching
   with CoreValidate
-  with Comprehension {
+  with Comprehension
+  with PushDown {
 
   import universe._
 

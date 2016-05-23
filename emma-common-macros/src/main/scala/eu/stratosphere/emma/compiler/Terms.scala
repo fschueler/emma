@@ -57,6 +57,13 @@ trait Terms extends Util { this: Trees with Types with Symbols =>
         else freshTermName(s"$prefix$$")
       }
 
+      /** Returns a fresh term name and the corresponding free term symbol starting with `prefix$`. */
+      def freshTermAndSymbol(prefix: String, tpe: Type): (TermName, FreeTermSymbol) = {
+        val t = fresh(prefix)
+        val s = sym.free(t, tpe)
+        (t, s)
+      }
+
       def unapply(name: TermName): Option[String] =
         Some(name.toString)
 
