@@ -8,10 +8,24 @@ import eu.stratosphere.emma.compiler.lang.core.Core
 trait LinAlg extends Common with Comprehension {
   self: Core =>
 
-  import universe._
+  import Term._
   import Tree._
+  import universe._
 
   private[emma] object LinAlg {
+
+    def buildChains(tree: Tree): Tree = {
+
+      val transform: Tree => Any = bottomUp {
+        case a =>
+          println(a)
+          a
+      }
+
+      val x = transform (tree)
+
+      tree
+    }
 
     // -------------------------------------------------------------------------
     // Mock comprehension syntax language
@@ -24,7 +38,6 @@ trait LinAlg extends Common with Comprehension {
 
       def unapply(tree: Tree): Option[(Tree, Tree)]
 
-      def monadic(xs: Tree)(fn: Tree): Tree
     }
 
     object Syntax {
@@ -41,20 +54,22 @@ trait LinAlg extends Common with Comprehension {
       // Matrix Ops
       // -----------------------------------------------------------------------
 
-//      object map extends MonadOp {
-//
-//        override val symbol = LA.m_rows
-//
-//        override def apply(xs: Tree)(f: Tree): Tree =
-//          Method.call(xs, symbol, Type.arg(2, f))(f :: Nil)
-//
-//        override def unapply(apply: Tree): Option[(Tree, Tree)] = apply match {
-//          case Method.call(xs, `symbol`, _, Seq(f)) => Some(xs, f)
-//          case _ => None
-//        }
-//      }
+      object rowAggregate {
+        val symbol = LA.m_rows.asTerm
 
+        def apply(lhs: TermSymbol, matrix: Tree, tpe: Type, func: Tree, impl: Seq[Tree]): Tree = {
+          val mCall = Method.call(matrix, symbol, tpe)(Seq(func))
+          val appl = Term.app(mCall)(impl)
+          val_(lhs, appl)
+        }
 
+        def unapply(apply: Tree): Option[(TermSymbol, Tree, Type, Tree, Seq[Tree])] = apply match {
+          case val_(resultVal, Apply(Method.call(matrix, mthd, tpe, Seq(f)), impl), _)
+            if (symbol.alternatives contains mthd) && (Type.of(mthd).finalResultType <:< VectorTpe) =>
+            Some(resultVal, matrix, Type.result(f), f, impl)
+          case _ => None
+        }
+      }
     }
 
     // -----------------------------------------------------------------------

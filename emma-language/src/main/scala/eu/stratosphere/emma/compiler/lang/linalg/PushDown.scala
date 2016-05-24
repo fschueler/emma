@@ -80,10 +80,7 @@ trait PushDown extends Common with Comprehension {
 
 
       val transform: Tree => Tree = postWalk {
-        // TODO: get this running with app instead of Apply
-        case val_(resultVal, Apply(Method.call(matrix, mthd, tpe, Seq(f)), impl), _)
-          if (LA.m_rows.alternatives contains mthd) &&
-            (Type.of(mthd).finalResultType <:< VectorTpe) =>
+        case LinAlg.Syntax.rowAggregate(resultVal, matrix, tpe, f, impl) =>
 
           val ix = LinAlg.getRoots(tree, matrix.symbol)
 
