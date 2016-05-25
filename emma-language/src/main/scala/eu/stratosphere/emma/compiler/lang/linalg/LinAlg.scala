@@ -4,8 +4,10 @@ import eu.stratosphere.emma.api.lara.{Matrix, Vector}
 import eu.stratosphere.emma.compiler.Common
 import eu.stratosphere.emma.compiler.lang.comprehension.Comprehension
 import eu.stratosphere.emma.compiler.lang.core.Core
+import eu.stratosphere.emma.compiler.lang.linalg.StaticRewrites
 
-trait LinAlg extends Common with Comprehension {
+trait LinAlg extends Common
+  with StaticRewrites {
   self: Core =>
 
   import Term._
@@ -71,6 +73,12 @@ trait LinAlg extends Common with Comprehension {
         }
       }
     }
+
+    // -----------------------------------------------------------------------
+    // Rewrite API
+    // -----------------------------------------------------------------------
+
+    def rewrite(matrix: Symbol)(tree: Tree): Tree = StaticRewrites.rewrite(matrix)(tree)
 
     // -----------------------------------------------------------------------
     // Helper
