@@ -10,6 +10,7 @@ trait PushDown extends Common with Comprehension {
   import Term._
   import Tree._
   import universe._
+  import LinAlg.{Syntax}
 
   private[compiler] object PushDown {
 
@@ -79,8 +80,10 @@ trait PushDown extends Common with Comprehension {
       }
 
 
+      val s = new Syntax()
+
       val transform: Tree => Tree = postWalk {
-        case LinAlg.Syntax.rowAggregate(resultVal, matrix, tpe, f, impl) =>
+        case s.rowAggregate(resultVal, matrix, tpe, f, impl) =>
 
           val ix = LinAlg.getRoots(tree, matrix.symbol)
 

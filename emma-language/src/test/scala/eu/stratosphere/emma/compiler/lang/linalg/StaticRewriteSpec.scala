@@ -38,6 +38,10 @@ class StaticRewriteSpec extends BaseCompilerSpec {
 
   def rewrite: Tree => Tree = {
     LinAlg.rewrite(LA.matrixSymbol)(_)
+  } andThen {
+    Core.dce
+  } andThen {
+    Core.simplify
   }
 
   val (inp1, exp1) = {
@@ -45,7 +49,7 @@ class StaticRewriteSpec extends BaseCompilerSpec {
     val inp = (typeCheckAndANF) (reify {
       val matrix$1 = X
       val vector$1 = VecsAndMats.y
-      val transpose$1 = X.transpose()
+      val transpose$1 = matrix$1.transpose()
       val matmult$1 = transpose$1 %*% vector$1
       matmult$1
     })
@@ -54,7 +58,7 @@ class StaticRewriteSpec extends BaseCompilerSpec {
       val matrix$1 = X
       val vector$1 = VecsAndMats.y
       val transpose$1 = vector$1.transpose()
-      val matmult$1 = X %*% transpose$1
+      val matmult$1 = transpose$1 %*% matrix$1
       val transpose$2 = matmult$1.transpose()
       transpose$2
     })

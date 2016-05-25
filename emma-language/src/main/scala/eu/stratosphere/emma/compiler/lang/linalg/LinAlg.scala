@@ -42,7 +42,7 @@ trait LinAlg extends Common
 
     }
 
-    object Syntax {
+    class Syntax {
 
       val monadTpe /*  */ = LA.MATRIX//monad.asType.toType.typeConstructor
       val moduleSel /* */ = resolve(LA.moduleSymbol)
@@ -69,6 +69,52 @@ trait LinAlg extends Common
           case val_(resultVal, Apply(Method.call(matrix, mthd, tpe, Seq(f)), impl), _)
             if (symbol.alternatives contains mthd) && (Type.of(mthd).finalResultType <:< VectorTpe) =>
             Some(resultVal, matrix, Type.result(f), f, impl)
+          case _ => None
+        }
+      }
+
+      /** matrix multiplication of the form M x V -> V */
+      object matmultvec {
+        val symbol = LA.m_mult.asTerm
+
+        def apply(matrix: Tree, vec: Tree, tpe: Type): Tree = {
+          Method.call(matrix, symbol, tpe)(Seq(vec))
+        }
+
+        def unapply(apply: Tree): Option[(Tree, Tree, Type)] = apply match {
+          case Method.call(matrix, mthd, tpe, Seq(vec))
+            if (symbol.alternatives contains mthd) && (Type.of(mthd).finalResultType <:< VectorTpe) =>
+            Some((matrix, vec, Type.result(vec)))
+          case _ => None
+        }
+      }
+
+      object mtranspose {
+        val symbol = LA.m_transpose.asTerm
+
+        def apply(vec: Tree): Tree = {
+          Method.call(vec, symbol, MatrixTpe)()
+        }
+
+        def unapply(apply: Tree): Option[Tree] = apply match {
+          case Method.call(matrix, mthd, _, _)
+            if LA.m_transpose.alternatives contains mthd =>
+            Some(matrix)
+          case _ => None
+        }
+      }
+
+      object vtranspose {
+        val symbol = LA.v_transpose.asTerm
+
+        def apply(vec: Tree): Tree = {
+          Method.call(vec, symbol, VectorTpe)()
+        }
+
+        def unapply(apply: Tree): Option[Tree] = apply match {
+          case Method.call(matrix, mthd, Seq(tpe), _)
+            if LA.v_transpose.alternatives contains mthd =>
+            Some(matrix)
           case _ => None
         }
       }
