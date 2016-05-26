@@ -73,6 +73,7 @@ class StaticRewriteSpec extends BaseCompilerSpec {
   "static rewrite" - {
     "of M.t %*% v" in {
       rewrite(inp1) shouldBe alphaEqTo(exp1)
+      rewrite(exp1) shouldBe alphaEqTo(exp1) // this block should not be rewritten
     }
   }
 }
