@@ -28,6 +28,7 @@ trait Core extends Common
   with DCE
   with DSCF
   with Pickling
+  with DML
   with CoreValidate
   with Comprehension {
   this: AlphaEq with Source =>
@@ -326,6 +327,8 @@ trait Core extends Common
 
     /** Delegates to [[Pickle.prettyPrint]]. */
     val prettyPrint = unQualifyStatics andThen Pickle.prettyPrint
+
+    val generateDML = unQualifyStaticModules andThen DMLTransform.generateDML
 
     // -------------------------------------------------------------------------
     // Meta Information API

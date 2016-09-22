@@ -31,7 +31,6 @@
         <dependency>
             <groupId>eu.stratosphere</groupId>
             <artifactId>emma-language</artifactId>
-            <scope>test</scope>
         </dependency>
         <!-- Emma (test jars) -->
         <dependency>

@@ -27,7 +27,7 @@ private[core] trait Pickling extends Common {
   import Core.{Lang => core}
   import UniverseImplicits._
 
-  private[core] object Pickle {
+  object Pickle {
 
     type D = Int => String // semantic domain (offset => string representation)
     val indent = 2
