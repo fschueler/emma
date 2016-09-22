@@ -36,8 +36,10 @@ private[core] trait DML extends Common{
       val isConstructor = (sym: u.MethodSymbol) =>
         constructors.contains(sym.name.toString)
 
-      val isMatrixOp = (sym: u.MethodSymbol) =>
-        matrixOps.contains(sym.name.toString)
+      val isMatrixOp = (sym: u.MethodSymbol) => {
+        val s = sym.name.decodedName.toString
+        matrixOps.contains(s)
+      }
 
       val isApply = (sym: u.MethodSymbol) =>
         sym.name == u.TermName("apply")
