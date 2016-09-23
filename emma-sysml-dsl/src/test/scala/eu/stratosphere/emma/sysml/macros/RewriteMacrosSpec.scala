@@ -11,9 +11,21 @@ import eu.stratosphere.emma.sysml.api._
 class RewriteMacrosSpec extends FreeSpec with Matchers {
 
 
-  "Produce DML script" in {
-    val dml = parallelize { val x = Matrix.zeros(3, 3) }
-    dml
+  "Matrix Multiplication" in {
+    def dml(args: Any*): String = parallelize {
+      val A = Matrix.rand(5, 3)
+      val B = Matrix.rand(3, 7)
+      A %*% B
+     }
+
+    val exp: String =
+      """
+        |A = rand(rows=5, cols=3)
+        |B = rand(rows=3, cols=7)
+        |A %*% B
+      """.stripMargin.trim
+
+    dml() shouldEqual exp
   }
 
 }
