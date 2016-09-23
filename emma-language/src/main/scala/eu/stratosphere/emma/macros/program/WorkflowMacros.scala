@@ -100,7 +100,7 @@ class WorkflowMacros(val c: blackbox.Context)
 
     doSemanticChecks(e.tree)
 
-    // Create a normalized version of the original tree
+    // Create a normalized version of the original treefelix.schueler@ibm.com
     val normalized = normalize(e.tree)
 
     // ----------------------------------------------------------------------

@@ -1,8 +1,17 @@
 package eu.stratosphere.emma.sysml
 
 import breeze.linalg.{Matrix => _, Vector => _, _}
+import scala.language.experimental.macros
+
+import eu.stratosphere.emma.macros.program.RewriteMacros
 
 package object api {
+
+  /**
+    * The entry point for the systemML macro
+    */
+
+  final def parallelize[T](e: T): String = macro RewriteMacros.impl[T]
 
   object :::
 
