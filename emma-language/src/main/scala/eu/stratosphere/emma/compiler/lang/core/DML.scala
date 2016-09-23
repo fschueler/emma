@@ -13,7 +13,7 @@ private[core] trait DML extends Common{
 
   object DMLTransform {
     type D = Int => String // semantic domain (offset => string representation)
-    val indent = 2
+    val indent = 0
 
     val generateDML: u.Tree => String  = (tree: u.Tree) => {
 
@@ -173,13 +173,13 @@ private[core] trait DML extends Common{
            """.stripMargin.trim
 
           val valsStr = (vals map (val_ => (" " * (offset + indent)) + val_(offset + indent))).mkString("\n")
+
           val defsStr = (defs map (def_ => (" " * (offset + indent)) + def_(offset + indent))).mkString("\n")
           Seq(
-            "{",
             valsStr,
             defsStr,
             " " * (offset + indent) + expr(offset + indent),
-            " " * offset + "}").filter(_.trim != "").mkString("\n")
+            " " * offset).filter(_.trim != "").mkString("\n")
         }
 
         // Comprehensions

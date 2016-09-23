@@ -328,7 +328,7 @@ trait Core extends Common
     /** Delegates to [[Pickle.prettyPrint]]. */
     val prettyPrint = unQualifyStatics andThen Pickle.prettyPrint
 
-    val generateDML = unQualifyStaticModules andThen DMLTransform.generateDML
+    val generateDML = unQualifyStatics andThen DMLTransform.generateDML
 
     // -------------------------------------------------------------------------
     // Meta Information API

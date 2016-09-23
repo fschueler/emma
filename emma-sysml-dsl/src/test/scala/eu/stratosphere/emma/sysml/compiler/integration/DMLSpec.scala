@@ -108,7 +108,6 @@ class DMLSpec extends BaseCompilerSpec {
     val act = toDML(idPipeline(u.reify {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
-
       A %*% B
     }))
 
@@ -116,9 +115,8 @@ class DMLSpec extends BaseCompilerSpec {
       """
         |A = rand(rows=5, cols=3)
         |B = rand(rows=3, cols=7)
-        |
         |A %*% B
-      """.stripMargin
+      """.stripMargin.trim
 
     act shouldEqual exp
   }
