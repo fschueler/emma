@@ -18,18 +18,27 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler {
     tree => Core.generateDML(tree)
 
   def impl[T: c.WeakTypeTag](e: c.Expr[T]) = {
-    val dmlstring = core.Lit(toDML(idPipeline(e)))
+    val dmlString = s"""
+        |print('Starting SystemML execution')
+        |${toDML(idPipeline(e))}
+        |print('finished execution...')
+      """.stripMargin
 
+    val testString = "print('hello world')"
     // Construct algorithm object
     val alg = q"""
       import eu.stratosphere.emma.api.SystemMLAlgorithm
       import eu.stratosphere.emma.sysml.api._
 
+      import org.apache.sysml.api.MLContext
+
       new SystemMLAlgorithm[${u.weakTypeOf[T]}]  {
       import _root_.scala.reflect._
 
       def run(): ${u.weakTypeOf[T]} = {
-        $dmlstring
+        val ml = implicitly[MLContext]
+        val script: String = $dmlString
+        ml.executeScript(script)
         Matrix.rand(3, 3)
       }
     }"""

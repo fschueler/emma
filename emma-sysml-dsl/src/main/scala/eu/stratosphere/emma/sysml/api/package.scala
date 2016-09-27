@@ -5,8 +5,18 @@ import eu.stratosphere.emma.api.SystemMLAlgorithm
 
 import scala.language.experimental.macros
 import eu.stratosphere.emma.macros.program.RewriteMacros
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.sysml.api.MLContext
 
 package object api {
+
+  private val conf = new SparkConf()
+    .setMaster("local[2]")
+    .setAppName("SystemML Spark App")
+
+  private val sc: SparkContext = new SparkContext(conf)
+
+  implicit lazy val mlctx: MLContext = new MLContext(sc)
 
   /**
     * The entry point for the systemML macro

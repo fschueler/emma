@@ -111,7 +111,7 @@ private[core] trait DML extends Common{
           case value: Char   => s""""${value}""""
           case value: String => s""""${escape(value)}""""
           case null          => "null"
-          case _             => value.toString
+          case _             => "" //value.toString
           //@formatter:on
         }
         def this_(sym: u.Symbol): D = ???

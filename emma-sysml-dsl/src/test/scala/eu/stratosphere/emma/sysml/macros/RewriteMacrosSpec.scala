@@ -15,8 +15,8 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     val alg = parallelize {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
-      A %*% B
-     }
+      val C = A %*% B
+    }
 
     val exp: String =
       """
@@ -25,7 +25,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         |A %*% B
       """.stripMargin.trim
 
-    val a: SystemMLAlgorithm[Matrix] = alg
+    val a = alg
     val m = a.run()
     m
   }
