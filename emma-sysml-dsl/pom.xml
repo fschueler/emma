@@ -60,6 +60,20 @@
             <version>0.12</version>
         </dependency>
 
+        <!-- SystemML -->
+        <dependency>
+            <groupId>org.apache.systemml</groupId>
+            <artifactId>systemml</artifactId>
+            <version>0.10.0-incubating</version>
+        </dependency>
+
+        <!-- Spark -->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.11</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
     </dependencies>
 
 

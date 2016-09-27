@@ -1,9 +1,9 @@
 package eu.stratosphere.emma.sysml.macros
 
+import eu.stratosphere.emma.api.SystemMLAlgorithm
 import org.junit.runner.RunWith
 import org.scalatest.{FreeSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
-
 import eu.stratosphere.emma.sysml.api._
 
 /** A spec for SystemML Algorithms. */
@@ -12,7 +12,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
 
   "Matrix Multiplication" in {
-    def dml(args: Any*): String = parallelize {
+    val alg = parallelize {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
       A %*% B
@@ -25,7 +25,9 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
         |A %*% B
       """.stripMargin.trim
 
-    dml() shouldEqual exp
+    val a: SystemMLAlgorithm[Matrix] = alg
+    val m = a.run()
+    m
   }
 
 }

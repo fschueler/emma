@@ -116,6 +116,10 @@ package object api {
     def run(engine: runtime.Engine): T
   }
 
+  trait SystemMLAlgorithm[T] {
+    def run(): T
+  }
+
   // -----------------------------------------------------
   // limits
   // -----------------------------------------------------
