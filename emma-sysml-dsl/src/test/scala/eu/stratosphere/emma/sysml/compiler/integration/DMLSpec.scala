@@ -5,6 +5,7 @@ import eu.stratosphere.emma.compiler.lang.core.DML
 import eu.stratosphere.emma.sysml.api._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import resource._
 
 /** A spec for SystemML Algorithms. */
 @RunWith(classOf[JUnitRunner])
@@ -37,7 +38,7 @@ class DMLSpec extends BaseCompilerSpec {
 
     "Literals" in {
       val acts = idPipeline(u.reify(
-        42, 42L, 3.14, 3.14F, .1e6, 'c', "string"
+        42, 42L, 3.14, 3.14F, .1e6, 'c', "string", ()
       )) collect {
         case act@core.Lit(_) => toDML(act)
       }
@@ -108,14 +109,51 @@ class DMLSpec extends BaseCompilerSpec {
     val act = toDML(idPipeline(u.reify {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
-      A %*% B
+      val C = A %*% B
     }))
 
     val exp =
       """
         |A = rand(rows=5, cols=3)
         |B = rand(rows=3, cols=7)
-        |A %*% B
+        |C = A %*% B
+      """.stripMargin.trim
+
+    act shouldEqual exp
+  }
+
+  "Reading a matrix" in {
+
+    val act = toDML(idPipeline(u.reify {
+      val A = read("path/to/matrix.csv")
+      val B = Matrix.zeros(3, 3)
+      val C = A %*% B
+    }))
+
+    val exp =
+      """
+        |A = read("path/to/matrix.csv")
+        |B = matrix(0, rows=3, cols=3)
+        |C = A %*% B
+      """.stripMargin.trim
+
+    act shouldEqual exp
+  }
+
+  "Writing a matrix" in {
+    val act = toDML(idPipeline(u.reify {
+      val A = read("path/to/matrix.csv")
+      val B = Matrix.zeros(3, 3)
+      val C = A %*% B
+      write(C, "path/to/matrix.csv", Format.CSV)
+    }))
+
+    val exp =
+      """
+        |A = read("path/to/matrix.csv")
+        |B = matrix(0, rows=3, cols=3)
+        |C = A %*% B
+        |write(C, "path/to/matrix.csv", format="csv")
       """.stripMargin.trim
 
     act shouldEqual exp

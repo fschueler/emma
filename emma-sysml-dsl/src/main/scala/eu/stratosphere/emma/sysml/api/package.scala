@@ -28,6 +28,8 @@ package object api {
 
   def read(path: String): Matrix = ???
 
+  def write(mat: Matrix, path: String, format: Format.FileFormat): Unit = ???
+
   def sum(mat: Matrix): Double = breeze.linalg.sum(mat.impl)
 
   def sum(vec: Vector): Double = breeze.linalg.sum(vec.impl)
@@ -86,5 +88,11 @@ package object api {
     def *(v: Matrix): Matrix = v * n
 
     def /(v: Matrix): Matrix = v / n
+  }
+
+  object Format {
+    sealed trait FileFormat
+    case object CSV extends FileFormat
+    case object BINARY extends FileFormat
   }
 }

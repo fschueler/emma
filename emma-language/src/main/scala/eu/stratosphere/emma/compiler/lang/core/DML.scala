@@ -23,6 +23,8 @@ private[core] trait DML extends Common{
 
       val constructors = Set("zeros", "rand")
 
+      val builtins = Set("read", "write")
+
       val printSym = (sym: u.Symbol) => {
         val decName = sym.name.decodedName.toString.stripPrefix("unary_")
         val encName = sym.name.encodedName.toString.stripPrefix("unary_")
@@ -39,6 +41,11 @@ private[core] trait DML extends Common{
       val isMatrixOp = (sym: u.MethodSymbol) => {
         val s = sym.name.decodedName.toString
         matrixOps.contains(s)
+      }
+
+      val isBuiltin = (sym: u.MethodSymbol) => {
+        val s = sym.name.decodedName.toString
+        builtins.contains(s)
       }
 
       val isApply = (sym: u.MethodSymbol) =>
@@ -61,6 +68,23 @@ private[core] trait DML extends Common{
 
       val printMatrixOp = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
         "A %*% B"
+      }
+
+      val printBuiltin = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => sym.name match {
+        case u.TermName("read") => {
+          val path = argss flatMap  (args => args map (arg => arg(offset)))
+          s"read(${path.head})"
+        }
+
+        case u.TermName("write") => {
+          val args = argss flatMap  (args => args map (arg => arg(offset)))
+          val format = args(2) match {
+            case "CSV" => """format="csv""""
+            case _     => throw new RuntimeException(s"Unsopported output format: ${args(2)}")
+          }
+          s"write(${args(0)}, ${args(1)}, $format)"
+        }
+        case _ => throw new RuntimeException(s"Function ${sym.name} is currently not supported!")
       }
 
       val isUnary = (sym: u.MethodSymbol) =>
@@ -105,13 +129,11 @@ private[core] trait DML extends Common{
         // Atomics
         def lit(value: Any): D = offset => value match {
           //@formatter:off
-          case value: Int    => value.toString
-          case value: Long   => s"${value}"
-          case value: Float  => s"${value}"
           case value: Char   => s""""${value}""""
           case value: String => s""""${escape(value)}""""
           case null          => "null"
-          case _             => "" //value.toString
+          case value: Unit   => ""
+          case _             => value.toString
           //@formatter:on
         }
         def this_(sym: u.Symbol): D = ???
@@ -140,6 +162,8 @@ private[core] trait DML extends Common{
                 printConstructor(method, argss, offset)
               else if (isMatrixOp(method))
                 printMatrixOp(tgt, method, argss, offset)
+              else if (isBuiltin(method))
+                printBuiltin(tgt, method, argss, offset)
               else
                 "nope!"
             }

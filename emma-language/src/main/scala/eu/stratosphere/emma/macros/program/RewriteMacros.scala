@@ -39,7 +39,6 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler {
         val ml = implicitly[MLContext]
         val script: String = $dmlString
         ml.executeScript(script)
-        Matrix.rand(3, 3)
       }
     }"""
 

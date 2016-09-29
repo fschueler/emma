@@ -16,18 +16,11 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
       val C = A %*% B
+      write(C, "/home/felix/matrix.csv", Format.CSV)
     }
-
-    val exp: String =
-      """
-        |A = rand(rows=5, cols=3)
-        |B = rand(rows=3, cols=7)
-        |A %*% B
-      """.stripMargin.trim
 
     val a = alg
     val m = a.run()
     m
   }
-
 }
