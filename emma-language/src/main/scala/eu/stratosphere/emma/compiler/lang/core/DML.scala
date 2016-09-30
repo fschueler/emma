@@ -177,7 +177,8 @@ private[core] trait DML extends Common{
 //              s"${printSym(method)}${tgt(offset)}"
 //            case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
 //              s"${printArgss(argss, offset)}"
-//            case (Some(tgt), _) =>
+//            case (Some(tgt), _) =>    val testString = "print('hello world')"
+
 //              s"${tgt(offset)}${printMethod(".", method, "")}${printArgss(argss, offset)}"
 //            case (None, Nil | (Nil :: Nil)) if targs.nonEmpty =>
 //              s"${printSym(method)}[${(targs map printTpe).mkString}]"

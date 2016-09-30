@@ -12,15 +12,13 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
 
   "Matrix Multiplication" in {
-    val alg = parallelize {
+    val res = parallelize {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
       val C = A %*% B
-      write(C, "/home/felix/matrix.csv", Format.CSV)
-    }
+      C
+    } run()
 
-    val a = alg
-    val m = a.run()
-    m
+    res
   }
 }

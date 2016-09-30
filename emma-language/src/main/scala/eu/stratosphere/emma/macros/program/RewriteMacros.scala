@@ -18,27 +18,43 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler {
     tree => Core.generateDML(tree)
 
   def impl[T: c.WeakTypeTag](e: c.Expr[T]) = {
+
+    // TODO this needs to be more robust for possible and impossible return types
+    /** construct the return type that has to be retained from mlcontext */
+    val (outType: Type, outNames: List[Tree]) = e.tree match {
+      case u.Block(_, expr) => expr match {
+        case l: u.Literal => (l.tpe, List(l.value))
+        case a: u.Apply if a.symbol.name == u.TermName("apply")=> (a.tpe, a.args)
+        case _ => (expr.tpe, List(expr))
+      }
+      case _ => (e.tree.tpe, e.tree)
+    }
+
     val dmlString = s"""
         |print('Starting SystemML execution')
         |${toDML(idPipeline(e))}
         |print('finished execution...')
       """.stripMargin
 
-    val testString = "print('hello world')"
+    val outParams = outNames.map(x => s""""$x"""").mkString(", ")
+
     // Construct algorithm object
     val alg = q"""
       import eu.stratosphere.emma.api.SystemMLAlgorithm
       import eu.stratosphere.emma.sysml.api._
 
-      import org.apache.sysml.api.MLContext
+      import org.apache.sysml.api.mlcontext.{Matrix => _, _}
+      import org.apache.sysml.api.mlcontext.ScriptFactory._
 
       new SystemMLAlgorithm[${u.weakTypeOf[T]}]  {
       import _root_.scala.reflect._
 
       def run(): ${u.weakTypeOf[T]} = {
         val ml = implicitly[MLContext]
-        val script: String = $dmlString
-        ml.executeScript(script)
+        val script = dml($dmlString).out()
+        val out = ml.execute(script).getTuple[$outType]($outParams)
+
+        Matrix.zeros(3, 3)
       }
     }"""
 

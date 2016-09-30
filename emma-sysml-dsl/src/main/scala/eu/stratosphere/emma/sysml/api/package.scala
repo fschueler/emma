@@ -6,7 +6,7 @@ import eu.stratosphere.emma.api.SystemMLAlgorithm
 import scala.language.experimental.macros
 import eu.stratosphere.emma.macros.program.RewriteMacros
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.sysml.api.MLContext
+import org.apache.sysml.api.mlcontext.{Matrix => _, _}
 
 package object api {
 
