@@ -5,6 +5,7 @@ import eu.stratosphere.emma.api.SystemMLAlgorithm
 
 import scala.language.experimental.macros
 import eu.stratosphere.emma.macros.program.RewriteMacros
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.sysml.api.mlcontext.{Matrix => _, _}
 
@@ -14,7 +15,8 @@ package object api {
     .setMaster("local[2]")
     .setAppName("SystemML Spark App")
 
-  private val sc: SparkContext = new SparkContext(conf)
+  lazy val sc: SparkContext = new SparkContext(conf)
+  lazy val sqlContext: SQLContext = new SQLContext(sc)
 
   implicit lazy val mlctx: MLContext = new MLContext(sc)
 
@@ -64,6 +66,10 @@ package object api {
   def rowIndexMax(mat: Matrix): Vector = Vector(breeze.linalg.argmax(mat.impl(::, *)).inner.map(_.toDouble))
 
   def pmax(mat: Matrix, s: Double): Matrix = Matrix(mat.impl.map(x => if (x > s) x else s))
+
+  def min(mat: Matrix): Double = ???
+
+  def max(Mat: Matrix): Double = ???
 
   ///////////////////////////////////
   // Implicit Matrix and Vector Ops

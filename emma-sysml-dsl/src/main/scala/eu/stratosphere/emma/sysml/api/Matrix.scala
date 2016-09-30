@@ -21,6 +21,7 @@ package eu.stratosphere.emma.sysml.api
 
 import breeze.linalg.{Matrix => _, Vector => _, _}
 import breeze.numerics._
+import org.apache.spark.sql.DataFrame
 
 import scala.util.Random
 
@@ -185,6 +186,8 @@ object Matrix {
             cols: Int): Matrix = new Matrix(new DenseMatrix[Double](rows, cols, values), rows, cols)
 
   def apply(values: Seq[Double], rows: Int, cols: Int): Matrix = apply(values.toArray, rows, cols)
+
+  def apply(df: DataFrame): Matrix = ???
 
   private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): Matrix = {
     require(rows * cols < Int.MaxValue)
