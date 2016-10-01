@@ -114,7 +114,7 @@
         <!-- Flink -->
         <flink.version>0.10.0</flink.version>
         <!-- Spark -->
-        <spark.version>2.0.0</spark.version>
+        <spark.version>1.6.2</spark.version>
 
         <!-- Logging -->
         <log4j.version>1.2.17</log4j.version>
@@ -255,13 +255,18 @@
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_${scala.tools.version}</artifactId>
                 <version>${spark.version}</version>
-                <scope>provided</scope>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-sql_${scala.tools.version}</artifactId>
                 <version>${spark.version}</version>
-                <scope>provided</scope>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-mllib_${scala.tools.version}</artifactId>
+                <version>${spark.version}</version>
             </dependency>
 
             <!-- CSV -->
@@ -305,19 +310,19 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
-                <scope>test</scope>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.scalacheck</groupId>
                 <artifactId>scalacheck_${scala.tools.version}</artifactId>
                 <version>${scalacheck.version}</version>
-                <scope>test</scope>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest_${scala.tools.version}</artifactId>
                 <version>${scalatest.version}</version>
-                <scope>test</scope>
+                <scope>compile</scope>
             </dependency>
 
             <!-- Arguments parsing -->

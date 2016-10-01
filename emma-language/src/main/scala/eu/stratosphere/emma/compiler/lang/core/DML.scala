@@ -23,7 +23,7 @@ private[core] trait DML extends Common{
 
       val constructors = Set("zeros", "rand")
 
-      val builtins = Set("read", "write")
+      val builtins = Set("read", "write", "min", "max", "mean")
 
       val printSym = (sym: u.Symbol) => {
         val decName = sym.name.decodedName.toString.stripPrefix("unary_")
@@ -70,21 +70,27 @@ private[core] trait DML extends Common{
         "A %*% B"
       }
 
-      val printBuiltin = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => sym.name match {
-        case u.TermName("read") => {
-          val path = argss flatMap  (args => args map (arg => arg(offset)))
-          s"read(${path.head})"
-        }
+      val printBuiltin = (target: D, sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
+        val args = argss flatMap (args => args map (arg => arg(offset)))
 
-        case u.TermName("write") => {
-          val args = argss flatMap  (args => args map (arg => arg(offset)))
-          val format = args(2) match {
-            case "CSV" => """format="csv""""
-            case _     => throw new RuntimeException(s"Unsopported output format: ${args(2)}")
+        sym.name match {
+          case u.TermName("read") => {
+            s"read(..${args})"
           }
-          s"write(${args(0)}, ${args(1)}, $format)"
+
+          case u.TermName("write") => {
+            val format = args(2) match {
+              case "CSV" => """format="csv""""
+              case _ => throw new RuntimeException(s"Unsopported output format: ${args(2)}")
+            }
+            s"write(${args(0)}, ${args(1)}, $format)"
+          }
+
+          case u.TermName(fname) => s"$fname(${args.mkString(", ")})"
+
+          case _ =>
+            abort(s"Unsopported builtin call: ${get.pos(sym)}", get.pos(sym))
         }
-        case _ => throw new RuntimeException(s"Function ${sym.name} is currently not supported!")
       }
 
       val isUnary = (sym: u.MethodSymbol) =>

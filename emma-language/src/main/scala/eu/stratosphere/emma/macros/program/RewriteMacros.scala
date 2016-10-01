@@ -1,14 +1,18 @@
 package eu.stratosphere.emma.macros.program
 
 import eu.stratosphere.emma.api.SystemMLAlgorithm
-import eu.stratosphere.emma.compiler.MacroCompiler
+import eu.stratosphere.emma.compiler.{Common, MacroCompiler}
+import eu.stratosphere.emma.macros.utility.DMLEnvironment
 
+import scala.collection.SortedSet
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
-class RewriteMacros(val c: blackbox.Context) extends MacroCompiler {
+class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
 
   import Core.{Lang => core}
+  import Source.{Lang => src}
+
   import universe._
 
   val idPipeline: c.Expr[Any] => u.Tree =
@@ -30,9 +34,11 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler {
       case _ => (e.tree.tpe, e.tree)
     }
 
+    val res = toDML(idPipeline(e))
+
     val dmlString = s"""
         |print('Starting SystemML execution')
-        |${toDML(idPipeline(e))}
+        |${res}
         |print('finished execution...')
       """.stripMargin
 
@@ -54,7 +60,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler {
         val script = dml($dmlString).out()
         val out = ml.execute(script).getTuple[$outType]($outParams)
 
-        (1.0, 1.0, 1.0)
+        out
       }
     }"""
 

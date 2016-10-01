@@ -16,17 +16,17 @@ import scala.util.Random
 class RewriteMacrosSpec extends FreeSpec with Matchers {
 
 
-  "Matrix Multiplication" ignore {
-
-    val res: Matrix = parallelize {
-      val A = Matrix.rand(5, 3)
-      val B = Matrix.rand(3, 7)
-      val C = A %*% B
-      C
-    } run()
-
-    res
-  }
+//  "Matrix Multiplication" ignore {
+//
+//    val res: Matrix = parallelize {
+//      val A = Matrix.rand(5, 3)
+//      val B = Matrix.rand(3, 7)
+//      val C = A %*% B
+//      C
+//    } run()
+//
+//    res
+//  }
 
   "MinMaxMean from DataFrame" in {
     val numRows = 10000
@@ -37,7 +37,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
     val (minOut: Double, maxOut: Double, meanOut: Double) = parallelize {
       /* this should take a dataframeand set it as input to the MLContext */
-      val matrix: Matrix = Matrix(df) // can we find out the metadata?
+      val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
 
       val minOut = min(matrix)
       val maxOut = max(matrix)
@@ -50,12 +50,12 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 
   }
 
-  "Matrix output" ignore {
-
-    val (m: Matrix, n: Double) = parallelize {
-      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
-      val n = sum(m)
-      (m, n)
-    } run()
-  }
+//  "Matrix output" ignore {
+//
+//    val (m: Matrix, n: Double) = parallelize {
+//      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
+//      val n = sum(m)
+//      (m, n)
+//    } run()
+//  }
 }

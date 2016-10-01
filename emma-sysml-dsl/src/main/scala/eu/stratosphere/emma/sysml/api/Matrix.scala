@@ -187,7 +187,7 @@ object Matrix {
 
   def apply(values: Seq[Double], rows: Int, cols: Int): Matrix = apply(values.toArray, rows, cols)
 
-  def apply(df: DataFrame): Matrix = ???
+  def fromDataFrame(df: DataFrame): Matrix = ???
 
   private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): Matrix = {
     require(rows * cols < Int.MaxValue)
