@@ -3,17 +3,32 @@ package compiler.lang.core
 
 import compiler.Common
 import compiler.lang.source.Source
+import util.Monoids
+import cats.std.all._
+import shapeless._
+
+import scala.collection.mutable
 
 private[core] trait DML extends Common{
   this: Source with Core =>
 
-  import Core.{Lang => coe}
+  import Core.{Lang => core}
+  import Source.{Lang => src}
   import UniverseImplicits._
-
 
   object DMLTransform {
     type D = Int => String // semantic domain (offset => string representation)
     val indent = 0
+
+    /** contains all sources that have to be specified in the MLContext
+      * with their names and the names in the dml script) */
+    val sources: mutable.Set[(String, u.TermSymbol)] = mutable.Set.empty
+
+    // map of all binding references to get the symbol for dataframes that are passed from outside the macro
+    val bindingRefs: mutable.Map[String, u.TermSymbol] = mutable.Map.empty
+
+    // the last seen lhs of a valdef
+    var currLhs: u.TermSymbol = _
 
     val generateDML: u.Tree => String  = (tree: u.Tree) => {
 
@@ -131,6 +146,7 @@ private[core] trait DML extends Common{
       val alg = new Core.Algebra[D] {
 
         def empty: D = offset => ""
+        (1.0, 1.0, 1.0)
 
         // Atomics
         def lit(value: Any): D = offset => value match {
@@ -144,15 +160,24 @@ private[core] trait DML extends Common{
         }
         def this_(sym: u.Symbol): D = ???
 
-        def bindingRef(sym: u.TermSymbol): D = offset =>
+        def bindingRef(sym: u.TermSymbol): D = offset => {
+          bindingRefs.put(sym.name.decodedName.toString, sym)
           printSym(sym)
+        }
 
         def moduleRef(target: u.ModuleSymbol): D = offset =>
           printSym(target)
 
         // Definitions
-        def valDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset =>
-          s"${printSym(lhs)} = ${rhs(offset)}"
+        def valDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset => {
+          currLhs = lhs
+          val rhsString = rhs(offset)
+          // if we have a reference to a dataframe, we need to scratch it and put the reference as input to mlContext
+          if (rhsString != "null")
+            s"${printSym(lhs)} = $rhsString"
+          else
+            " "
+        }
 
         def parDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = ???
         def defDef(sym: u.MethodSymbol, flags: u.FlagSet, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = ???
@@ -162,6 +187,7 @@ private[core] trait DML extends Common{
 
         def defCall(target: Option[D], method: u.MethodSymbol, targs: S[u.Type], argss: SS[D]): D = offset => {
           val s = target
+          val args = argss flatMap (args => args map (arg => arg(offset)))
           (target, argss) match {
             case (Some(tgt), _) => {
               if (isConstructor(method))
@@ -170,8 +196,21 @@ private[core] trait DML extends Common{
                 printMatrixOp(tgt, method, argss, offset)
               else if (isBuiltin(method))
                 printBuiltin(tgt, method, argss, offset)
+                /** transform a call to fromDataFrame to a reference that will be set in MLContext */
+              else if (method.name == u.TermName("fromDataFrame")) {
+                // get the name of the referenced variable (dataframe)
+                val in = bindingRefs.get(args.head) match {
+                  case Some(termSym) => termSym
+                  case _ =>
+                    abort(s"Could not find reference to variable ${args.head} in Matrix.fromDataFrame", method.pos)
+                }
+                // memoize the pair of (lhs, reference name)
+                sources.add((currLhs.name.decodedName.toString, in))
+                // the original valdef is removed as references to the variable will be resolved from MLContext
+                "null"
+              }
               else
-                "nope!"
+                " "
             }
 //            case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
 //              s"${tgt(offset)}(${arg(offset)})"

@@ -35,7 +35,7 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
     val df = sqlContext.createDataFrame(data, schema)
 
-    val (minOut: Double, maxOut: Double, meanOut: Double) = parallelize {
+    val alg = parallelize {
       /* this should take a dataframeand set it as input to the MLContext */
       val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
 
@@ -44,7 +44,9 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
       val meanOut = mean(matrix)
 
       (minOut, maxOut, meanOut)
-    } run()
+    }
+
+    val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
 
     println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
 
