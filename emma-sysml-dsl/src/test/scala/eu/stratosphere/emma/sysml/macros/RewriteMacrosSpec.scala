@@ -16,41 +16,41 @@ import scala.util.Random
 class RewriteMacrosSpec extends FreeSpec with Matchers {
 
 
-//  "Matrix Multiplication" ignore {
-//
-//    val res: Matrix = parallelize {
-//      val A = Matrix.rand(5, 3)
-//      val B = Matrix.rand(3, 7)
-//      val C = A %*% B
-//      C
-//    } run()
-//
-//    res
-//  }
-
-  "MinMaxMean from DataFrame" in {
-    val numRows = 10000
-    val numCols = 1000
-    val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
-    val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
-    val df = sqlContext.createDataFrame(data, schema)
+  "Matrix Multiplication" in {
 
     val alg = parallelize {
-      /* this should take a dataframeand set it as input to the MLContext */
-      val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
-
-      val minOut = min(matrix)
-      val maxOut = max(matrix)
-      val meanOut = mean(matrix)
-
-      (minOut, maxOut, meanOut)
+      val A = Matrix.rand(5, 3)
+      val B = Matrix.rand(3, 7)
+      val C = A %*% B
+      C
     }
 
-    val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
-
-    println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
-
+    val res = alg.run()
   }
+
+//  "MinMaxMean from DataFrame" in {
+//    val numRows = 10000
+//    val numCols = 1000
+//    val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
+//    val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
+//    val df = sqlContext.createDataFrame(data, schema)
+//
+//    val alg = parallelize {
+//      /* this should take a dataframeand set it as input to the MLContext */
+//      val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
+//
+//      val minOut = min(matrix)
+//      val maxOut = max(matrix)
+//      val meanOut = mean(matrix)
+//
+//      (minOut, maxOut, meanOut)
+//    }
+//
+//    val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
+//
+//    println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
+//
+//  }
 
 //  "Matrix output" ignore {
 //

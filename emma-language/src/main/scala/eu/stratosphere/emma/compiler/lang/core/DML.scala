@@ -162,7 +162,10 @@ private[core] trait DML extends Common{
 
         def bindingRef(sym: u.TermSymbol): D = offset => {
           bindingRefs.put(sym.name.decodedName.toString, sym)
-          printSym(sym)
+          if (sym.name.decodedName.toString == "C")
+            " "
+          else
+            printSym(sym)
         }
 
         def moduleRef(target: u.ModuleSymbol): D = offset =>
