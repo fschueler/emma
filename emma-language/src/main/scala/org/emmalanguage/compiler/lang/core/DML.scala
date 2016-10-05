@@ -229,7 +229,15 @@ private[core] trait DML extends Common {
 
             // matches apply methods with multiple arguments
             case (Some(tgt), (x :: xs) :: Nil) if isApply(method) => {
-                " "
+              val module = tgt(offset)
+              val argString = args.mkString(" ")
+
+              if (module == "Seq")
+                s""""$argString""""
+              else if (module == "Matrix")
+                s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
+              else
+                s"$module($argString)"
             }
 
               // matches methods with multiple arguments (e.g. zeros(3, 3), write)

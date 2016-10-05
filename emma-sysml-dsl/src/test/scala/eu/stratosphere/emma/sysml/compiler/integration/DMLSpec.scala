@@ -118,7 +118,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       val exp =
         """
-          |x$01 = zeros(rows=3, cols=3)
+          |x$01 = matrix(0, rows=3, cols=3)
         """.stripMargin.trim
 
       act shouldEqual exp
