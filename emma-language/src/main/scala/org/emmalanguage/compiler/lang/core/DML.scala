@@ -177,9 +177,9 @@ private[core] trait DML extends Common {
 
         def bindingRef(sym: u.TermSymbol): D = offset => {
           bindingRefs.put(sym.name.decodedName.toString, sym)
-          if (sym.name.decodedName.toString == "C")
-            " "
-          else
+//          if (sym.name.decodedName.toString == "C")
+//            " "
+//          else
             printSym(sym)
         }
 
@@ -208,22 +208,37 @@ private[core] trait DML extends Common {
           val s = target
           val args = argss flatMap (args => args map (arg => arg(offset)))
           (target, argss) match {
-            case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
-              s"${tgt(offset)}(${arg(offset)})"
 
               // matches tuples
             case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
               s"${printArgss(argss, offset)}"
 
+              // matches unary methods without arguments, e.g. A.t
             case (Some(tgt), Nil) if isUnary(method) =>
               s"${printSym(method)}${tgt(offset)}"
 
-              // matches methods (tgt = the module, arg = the argument, method = the function)
-            case (Some(tgt), ((arg :: Nil) :: Nil)) =>
+            // matches apply methods with one argument
+            case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
               s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
 
-            case (Some(tgt), ((x :: xs) :: ys)) if isApply(method) =>
-              s"${tgt(offset)}(${x(offset)})"
+              // matches methods with one argument (also %*%, read)
+            case (Some(tgt), (arg :: Nil) :: Nil) => {
+
+              s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
+            }
+
+            // matches apply methods with multiple arguments
+            case (Some(tgt), (x :: xs) :: Nil) if isApply(method) => {
+                " "
+            }
+
+              // matches methods with multiple arguments (e.g. zeros(3, 3), write)
+            case (Some(tgt), (x :: xs) :: Nil) => {
+              if (isConstructor(method))
+                printConstructor(method, argss, offset)
+              else
+                " "
+            }
 
             case (Some(tgt), _) => {
               if (isConstructor(method))

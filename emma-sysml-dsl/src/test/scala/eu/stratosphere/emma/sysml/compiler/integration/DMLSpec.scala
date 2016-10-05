@@ -96,29 +96,44 @@ class DMLSpec extends BaseCompilerSpec {
     "This" is pending
   }
 
-  "Matrix constructors" in {
+  "Matrix construction" - {
 
-    val t = idPipeline(u.reify {
+    "from rand" in {
+    val act = toDML(idPipeline(u.reify {
       val x$01 = Matrix.rand(3, 3)
-      val x$02 = Matrix.zeros(3, 3)
-      x$01 + x$02
-    })
+    }))
 
-    val acts = (t collect {
-      case u.Block(stats, _) => stats.collect {
-        case vd@u.ValDef(_, _, _, _) => toDML(vd)
-      }
-    }).flatten
-
-    val exps =
+    val exp =
       """
         |x$01 = rand(rows=3, cols=3)
-        |x$02 = matrix(0, rows=3, cols=3)
-      """.stripMargin.trim.split('\n')
+      """.stripMargin.trim
 
-    acts.length shouldEqual exps.length
+      act shouldEqual exp
+    }
 
-    (acts zip exps) foreach { case (act, exp) =>
+    "from zeros" in {
+      val act = toDML(idPipeline(u.reify {
+        val x$01 = Matrix.zeros(3, 3)
+      }))
+
+      val exp =
+        """
+          |x$01 = zeros(rows=3, cols=3)
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "from sequence" in {
+      val act = toDML(idPipeline(u.reify {
+        val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
+      }))
+
+      val exp =
+        """
+          |x$01 = matrix("1.0 2.0 3.0 4.0", rows=2, cols=2)
+        """.stripMargin.trim
+
       act shouldEqual exp
     }
   }
@@ -145,15 +160,11 @@ class DMLSpec extends BaseCompilerSpec {
 
     val act = toDML(idPipeline(u.reify {
       val A = read("path/to/matrix.csv")
-      val B = Matrix.zeros(3, 3)
-      val C = A %*% B
     }))
 
     val exp =
       """
         |A = read("path/to/matrix.csv")
-        |B = matrix(0, rows=3, cols=3)
-        |C = A %*% B
       """.stripMargin.trim
 
     act shouldEqual exp
@@ -161,18 +172,14 @@ class DMLSpec extends BaseCompilerSpec {
 
   "Writing a matrix" in {
     val act = toDML(idPipeline(u.reify {
-      val A = read("path/to/matrix.csv")
       val B = Matrix.zeros(3, 3)
-      val C = A %*% B
-      write(C, "path/to/matrix.csv", Format.CSV)
+      write(B, "path/to/matrix.csv", Format.CSV)
     }))
 
     val exp =
       """
-        |A = read("path/to/matrix.csv")
         |B = matrix(0, rows=3, cols=3)
-        |C = A %*% B
-        |write(C, "path/to/matrix.csv", format="csv")
+        |write(B, "path/to/matrix.csv", format="csv")
       """.stripMargin.trim
 
     act shouldEqual exp

@@ -71,14 +71,14 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
 //
 //  }
 
-  "Matrix output" in {
-
-    val alg = parallelize {
-      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
-      val n = sum(m)
-      (m, n)
-    }
-
-    val (m: Matrix, n: Double) = alg.run()
-  }
+//  "Matrix output" in {
+//
+//    val alg = parallelize {
+//      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
+//      val n = sum(m)
+//      (m, n)
+//    }
+//
+//    val (m: Matrix, n: Double) = alg.run()
+//  }
 }
