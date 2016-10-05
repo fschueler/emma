@@ -16,8 +16,8 @@
 package org.emmalanguage
 package compiler.lang.core
 
-import compiler.Common
 import compiler.lang.source.Source
+import compiler.Common
 import util.Monoids
 
 import cats.std.all._

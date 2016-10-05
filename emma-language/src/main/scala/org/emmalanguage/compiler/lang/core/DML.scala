@@ -1,15 +1,31 @@
-package eu.stratosphere.emma
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.emmalanguage
 package compiler.lang.core
 
 import compiler.Common
 import compiler.lang.source.Source
-import util.Monoids
-import cats.std.all._
-import shapeless._
 
 import scala.collection.mutable
 
-private[core] trait DML extends Common{
+private[core] trait DML extends Common {
   this: Source with Core =>
 
   import Core.{Lang => core}
@@ -38,7 +54,7 @@ private[core] trait DML extends Common{
 
       val constructors = Set("zeros", "rand")
 
-      val builtins = Set("read", "write", "min", "max", "mean")
+      val builtins = Set("read", "write", "min", "max", "mean", "sum")
 
       val printSym = (sym: u.Symbol) => {
         val decName = sym.name.decodedName.toString.stripPrefix("unary_")
@@ -146,7 +162,6 @@ private[core] trait DML extends Common{
       val alg = new Core.Algebra[D] {
 
         def empty: D = offset => ""
-        (1.0, 1.0, 1.0)
 
         // Atomics
         def lit(value: Any): D = offset => value match {
@@ -175,7 +190,8 @@ private[core] trait DML extends Common{
         def valDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset => {
           currLhs = lhs
           val rhsString = rhs(offset)
-          // if we have a reference to a dataframe, we need to scratch it and put the reference as input to mlContext
+          /* if we have a reference to a dataframe (rhs == null),
+             we need to scratch it and put the reference as input to mlContext */
           if (rhsString != "null")
             s"${printSym(lhs)} = $rhsString"
           else
@@ -192,6 +208,23 @@ private[core] trait DML extends Common{
           val s = target
           val args = argss flatMap (args => args map (arg => arg(offset)))
           (target, argss) match {
+            case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
+              s"${tgt(offset)}(${arg(offset)})"
+
+              // matches tuples
+            case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
+              s"${printArgss(argss, offset)}"
+
+            case (Some(tgt), Nil) if isUnary(method) =>
+              s"${printSym(method)}${tgt(offset)}"
+
+              // matches methods (tgt = the module, arg = the argument, method = the function)
+            case (Some(tgt), ((arg :: Nil) :: Nil)) =>
+              s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
+
+            case (Some(tgt), ((x :: xs) :: ys)) if isApply(method) =>
+              s"${tgt(offset)}(${x(offset)})"
+
             case (Some(tgt), _) => {
               if (isConstructor(method))
                 printConstructor(method, argss, offset)
@@ -215,23 +248,9 @@ private[core] trait DML extends Common{
               else
                 " "
             }
-//            case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
-//              s"${tgt(offset)}(${arg(offset)})"
-//            case (Some(tgt), ((arg :: Nil) :: Nil)) =>
-//              s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
-//            case (Some(tgt), Nil | (Nil :: Nil)) if targs.nonEmpty =>
-//              s"${tgt(offset)}${printMethod(".", method, "")}[${(targs map printTpe).mkString}]"
-//            case (Some(tgt), Nil) if isUnary(method) =>
-//              s"${printSym(method)}${tgt(offset)}"
-//            case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
-//              s"${printArgss(argss, offset)}"
-//            case (Some(tgt), _) =>    val testString = "print('hello world')"
 
-//              s"${tgt(offset)}${printMethod(".", method, "")}${printArgss(argss, offset)}"
-//            case (None, Nil | (Nil :: Nil)) if targs.nonEmpty =>
-//              s"${printSym(method)}[${(targs map printTpe).mkString}]"
-//            case (None, _) =>
-//              s"${printSym(method)}${printArgss(argss, offset)}"
+            case (None, _) =>
+              s"${printSym(method)}${printArgss(argss, offset)}"
           }
         }
         def inst(target: u.Type, targs: Seq[u.Type], argss: SS[D]): D = ???
