@@ -22,9 +22,13 @@ package eu.stratosphere.emma.sysml.compiler.integration
 import org.emmalanguage.compiler.BaseCompilerSpec
 
 import eu.stratosphere.emma.sysml.api._
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import resource._
+
+import scala.util.Random
 
 /** A spec for SystemML Algorithms. */
 @RunWith(classOf[JUnitRunner])
@@ -39,7 +43,7 @@ class DMLSpec extends BaseCompilerSpec {
 
   val anfPipeline: u.Expr[Any] => u.Tree =
     compiler.pipeline(typeCheck = true)(
-      Core.anf
+      Core.anf andThen Core.inlineLetExprs
     ).compose(_.tree)
 
   val liftPipeline: u.Expr[Any] => u.Tree =
@@ -136,6 +140,22 @@ class DMLSpec extends BaseCompilerSpec {
 
       act shouldEqual exp
     }
+
+    "from DataFrame" in {
+      val numRows = 10000
+      val numCols = 1000
+      val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
+      val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
+      val df = sqlContext.createDataFrame(data, schema)
+
+      val act = toDML(idPipeline(u.reify {
+        val A = Matrix.fromDataFrame(df)
+      }))
+
+      val exp = "" // the transformation code should be removed and the dataframe passed as input in MLContext
+
+      act shouldEqual exp
+    }
   }
 
   "Matrix Multiplication" in {
@@ -150,7 +170,26 @@ class DMLSpec extends BaseCompilerSpec {
       """
         |A = rand(rows=5, cols=3)
         |B = rand(rows=3, cols=7)
-        |C = A %*% B
+        |C = (A %*% B)
+      """.stripMargin.trim
+
+    act shouldEqual exp
+  }
+
+  "Matrix Multiply Chain" in {
+    val act = toDML(idPipeline(u.reify {
+      val A = Matrix.rand(5, 3)
+      val B = Matrix.rand(3, 7)
+      val C = Matrix.rand(7, 7)
+      val D = (A %*% B) %*% C
+    }))
+
+    val exp =
+      """
+        |A = rand(rows=5, cols=3)
+        |B = rand(rows=3, cols=7)
+        |C = rand(rows=7, cols=7)
+        |D = ((A %*% B) %*% C)
       """.stripMargin.trim
 
     act shouldEqual exp
@@ -183,5 +222,29 @@ class DMLSpec extends BaseCompilerSpec {
       """.stripMargin.trim
 
     act shouldEqual exp
+  }
+
+  "Control flow" - {
+
+    "For loop" in {
+
+      val act = toDML(idPipeline(u.reify {
+        var A = 5
+        for (i <- 1 to 20) {
+          A = A + 1
+        }
+      }))
+
+      val exp =
+        """
+          |A = 5;
+          |for (i in 1:20) {
+          |  A = A + 1;
+          |}
+        """.stripMargin.trim
+
+      act shouldEqual exp
+
+    }
   }
 }

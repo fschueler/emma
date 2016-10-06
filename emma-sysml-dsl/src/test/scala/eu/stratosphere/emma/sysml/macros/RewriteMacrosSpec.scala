@@ -35,50 +35,50 @@ import scala.util.Random
 class RewriteMacrosSpec extends FreeSpec with Matchers {
 
 
-//  "Matrix Multiplication" in {
-//
-//    val alg = parallelize {
-//      val A = Matrix.rand(5, 3)
-//      val B = Matrix.rand(3, 7)
-//      val C = A %*% B
-//      C
-//    }
-//
-//    val res = alg.run()
-//  }
+  "Matrix Multiplication" in {
 
-//  "MinMaxMean from DataFrame" in {
-//    val numRows = 10000
-//    val numCols = 1000
-//    val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
-//    val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
-//    val df = sqlContext.createDataFrame(data, schema)
-//
-//    val alg = parallelize {
-//      /* this should take a dataframeand set it as input to the MLContext */
-//      val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
-//
-//      val minOut = min(matrix)
-//      val maxOut = max(matrix)
-//      val meanOut = mean(matrix)
-//
-//      (minOut, maxOut, meanOut)
-//    }
-//
-//    val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
-//
-//    println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
-//
-//  }
+    val alg = parallelize {
+      val A = Matrix.rand(5, 3)
+      val B = Matrix.rand(3, 7)
+      val C = A %*% B
+      C
+    }
 
-//  "Matrix output" in {
-//
-//    val alg = parallelize {
-//      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
-//      val n = sum(m)
-//      (m, n)
-//    }
-//
-//    val (m: Matrix, n: Double) = alg.run()
-//  }
+    val res = alg.run()
+  }
+
+  "MinMaxMean from DataFrame" in {
+    val numRows = 10000
+    val numCols = 1000
+    val data = sc.parallelize(0 to numRows-1).map { _ => Row.fromSeq(Seq.fill(numCols)(Random.nextDouble)) }
+    val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
+    val df = sqlContext.createDataFrame(data, schema)
+
+    val alg = parallelize {
+      /* this should take a dataframeand set it as input to the MLContext */
+      val matrix: Matrix = Matrix.fromDataFrame(df) // can we find out the metadata?
+
+      val minOut = min(matrix)
+      val maxOut = max(matrix)
+      val meanOut = mean(matrix)
+
+      (minOut, maxOut, meanOut)
+    }
+
+    val  (minOut: Double, maxOut: Double, meanOut: Double) = alg.run()
+
+    println(s"The minimum is $minOut, maximum: $maxOut, mean: $meanOut")
+
+  }
+
+  "Matrix output" in {
+
+    val alg = parallelize {
+      val m = Matrix(Seq(11.0, 22.0, 33.0, 44.0), 2, 2)
+      val n = sum(m)
+      (m, n)
+    }
+
+    val (m: Matrix, n: Double) = alg.run()
+  }
 }

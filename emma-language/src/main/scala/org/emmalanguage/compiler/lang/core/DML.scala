@@ -62,8 +62,8 @@ private[core] trait DML extends Common {
 
         decName
         // TODO we have to make sure to transform invalid references into valid ones or raise an exception
-//        if (decName == encName && !kws.contains(decName) || sym.isMethod && decName.forall(ops.contains)) decName
-//        else s"`$decName`"
+        //        if (decName == encName && !kws.contains(decName) || sym.isMethod && decName.forall(ops.contains)) decName
+        //        else s"`$decName`"
       }
 
       val isConstructor = (sym: u.MethodSymbol) =>
@@ -87,13 +87,25 @@ private[core] trait DML extends Common {
         else pre + printSym(sym) + suf
 
       val printConstructor = (sym: u.MethodSymbol, argss: Seq[Seq[D]], offset: Int) => {
-        val dims = argss flatMap  (args => args map (arg => arg(offset)))
-
-        val (rows, cols) = (dims(0), dims(1))
+        val args = argss flatMap (args => args map (arg => arg(offset)))
 
         sym.name match {
-          case u.TermName("rand") => s"rand(rows=${rows}, cols=${cols})"
-          case u.TermName("zeros") => s"matrix(0, rows=${rows}, cols=${cols})"
+          case u.TermName("rand") => s"rand(rows=${args(0)}, cols=${args(1)})"
+          case u.TermName("zeros") => s"matrix(0, rows=${args(0)}, cols=${args(1)})"
+          case u.TermName("apply") => s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
+
+          case u.TermName("fromDataFrame") => {
+            // get the name of the referenced variable (dataframe)
+            val in = bindingRefs.get(args.head) match {
+              case Some(termSym) => termSym
+              case _ =>
+                abort(s"Could not find reference to variable ${args.head} in Matrix.fromDataFrame", sym.pos)
+            }
+            // memoize the pair of (lhs, reference name)
+            sources.add((currLhs.name.decodedName.toString, in))
+            // the original valdef is removed as references to the variable will be resolved from MLContext
+            "null"
+          }
         }
       }
 
@@ -106,7 +118,7 @@ private[core] trait DML extends Common {
 
         sym.name match {
           case u.TermName("read") => {
-            s"read(..${args})"
+            s"read(${args(0)})"
           }
 
           case u.TermName("write") => {
@@ -177,10 +189,7 @@ private[core] trait DML extends Common {
 
         def bindingRef(sym: u.TermSymbol): D = offset => {
           bindingRefs.put(sym.name.decodedName.toString, sym)
-//          if (sym.name.decodedName.toString == "C")
-//            " "
-//          else
-            printSym(sym)
+          printSym(sym)
         }
 
         def moduleRef(target: u.ModuleSymbol): D = offset =>
@@ -209,22 +218,36 @@ private[core] trait DML extends Common {
           val args = argss flatMap (args => args map (arg => arg(offset)))
           (target, argss) match {
 
-              // matches tuples
+            /* matches tuples */
             case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
-              s"${printArgss(argss, offset)}"
+              " "
 
-              // matches unary methods without arguments, e.g. A.t
+            /* matches unary methods without arguments, e.g. A.t */
             case (Some(tgt), Nil) if isUnary(method) =>
               s"${printSym(method)}${tgt(offset)}"
 
-            // matches apply methods with one argument
+            /* matches apply methods with one argument */
             case (Some(tgt), ((arg :: Nil) :: Nil)) if isApply(method) =>
               s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
 
-              // matches methods with one argument (also %*%, read)
+            /* matches methods with one argument (%*%, read) */
             case (Some(tgt), (arg :: Nil) :: Nil) => {
+              val module = tgt(offset)
 
-              s"${tgt(offset)}${printMethod(" ", method, " ")}${arg(offset)}"
+                // methods in the package object (builtins with one argument (read)
+              if (module == "package") {
+                printBuiltin(tgt, method, argss, offset)
+              }
+
+                // matrix constructors with one argument (fromDataFrame)
+              else if (module == "Matrix") {
+                printConstructor(method, argss, offset)
+              }
+
+                // binary operators
+              else {
+                s"($module ${method.name.decodedName} ${args(0)})"
+              }
             }
 
             // matches apply methods with multiple arguments
@@ -232,48 +255,44 @@ private[core] trait DML extends Common {
               val module = tgt(offset)
               val argString = args.mkString(" ")
 
-              if (module == "Seq")
+              if (module == "Seq") { // sequence constructors
                 s""""$argString""""
-              else if (module == "Matrix")
-                s"matrix(${args(0)}, rows=${args(1)}, cols=${args(2)})"
-              else
-                s"$module($argString)"
+              }
+
+              else if (module == "Matrix") { // matrix constructors
+                printConstructor(method, argss, offset)
+              }
+
+              else if (module == "package") { // builtins
+                "builtin"
+              }
+
+              else "case (Some(tgt), (x :: xs) :: Nil) if isApply(method)"
             }
 
-              // matches methods with multiple arguments (e.g. zeros(3, 3), write)
+            // matches methods with multiple arguments (e.g. zeros(3, 3), write)
             case (Some(tgt), (x :: xs) :: Nil) => {
-              if (isConstructor(method))
+
+              val module = tgt(offset)
+              val argString = args.mkString(" ")
+
+              if (module == "Matrix") { // matrix constructors
                 printConstructor(method, argss, offset)
-              else
-                " "
+              }
+
+              else if (module == "package") { // builtin
+                printBuiltin(tgt, method, argss, offset)
+              }
+
+              else "case (Some(tgt), (x :: xs) :: Nil)"
             }
 
             case (Some(tgt), _) => {
-              if (isConstructor(method))
-                printConstructor(method, argss, offset)
-              else if (isMatrixOp(method))
-                printMatrixOp(tgt, method, argss, offset)
-              else if (isBuiltin(method))
-                printBuiltin(tgt, method, argss, offset)
-                /** transform a call to fromDataFrame to a reference that will be set in MLContext */
-              else if (method.name == u.TermName("fromDataFrame")) {
-                // get the name of the referenced variable (dataframe)
-                val in = bindingRefs.get(args.head) match {
-                  case Some(termSym) => termSym
-                  case _ =>
-                    abort(s"Could not find reference to variable ${args.head} in Matrix.fromDataFrame", method.pos)
-                }
-                // memoize the pair of (lhs, reference name)
-                sources.add((currLhs.name.decodedName.toString, in))
-                // the original valdef is removed as references to the variable will be resolved from MLContext
-                "null"
-              }
-              else
-                " "
+              "case (Some(tgt), _)"
             }
 
             case (None, _) =>
-              s"${printSym(method)}${printArgss(argss, offset)}"
+              s"case (None, _)"
           }
         }
         def inst(target: u.Type, targs: Seq[u.Type], argss: SS[D]): D = ???

@@ -38,6 +38,11 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
   val idPipeline: c.Expr[Any] => u.Tree =
     identity(typeCheck = false).compose(_.tree)
 
+  val anfPipeline: u.Expr[Any] => u.Tree =
+    pipeline(typeCheck = false)(
+      Core.anf andThen Core.inlineLetExprs
+    ).compose(_.tree)
+
   val toDML: u.Tree => String =
     tree => Core.generateDML(tree)
 
@@ -70,14 +75,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
     }
 
     // generate the actual DML code
-    val res = toDML(idPipeline(e))
-    println(c.internal.enclosingOwner.pos.source.lineToString(1))
-
-    val dmlString = s"""
-                       |print('Starting SystemML execution')
-                       |${res}
-                       |print('finished execution...')
-      """.stripMargin
+    val dmlString = toDML(idPipeline(e))
 
     // assemble the input and output parameters to MLContext
     val inParams  = DMLTransform.sources.toList
