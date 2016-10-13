@@ -158,6 +158,35 @@ class DMLSpec extends BaseCompilerSpec {
     }
   }
 
+  "Definitions" - {
+
+    "Values" in {
+      val act = toDML(idPipeline(u.reify {
+        val a = 5
+      }))
+
+      val exp =
+        """
+          |a = 5
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+
+    "Variables" in {
+      val act = toDML(idPipeline(u.reify {
+        var a = 5
+      }))
+
+      val exp =
+        """
+          |a = 5
+        """.stripMargin.trim
+
+      act shouldEqual exp
+    }
+  }
+
   "Matrix Multiplication" in {
 
     val act = toDML(idPipeline(u.reify {

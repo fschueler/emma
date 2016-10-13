@@ -168,7 +168,7 @@ private[core] trait DML extends Common {
         .replace("\"","\\\"")
         .replace("\\","\\\\")
 
-      val alg = new Core.Algebra[D] {
+      val alg = new Source.Algebra[D] {
 
         def empty: D = offset => ""
 
@@ -201,7 +201,7 @@ private[core] trait DML extends Common {
           if (rhsString != "null")
             s"${printSym(lhs)} = $rhsString"
           else
-            " "
+            ""
         }
 
         def parDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = ???
@@ -217,7 +217,7 @@ private[core] trait DML extends Common {
 
             /* matches tuples */
             case (Some(tgt), _) if isApply(method) && api.Sym.tuples.contains(method.owner.companion) =>
-              " "
+              ""
 
             /* matches unary methods without arguments, e.g. A.t */
             case (Some(tgt), Nil) if isUnary(method) =>
@@ -296,31 +296,35 @@ private[core] trait DML extends Common {
         def lambda(sym: u.TermSymbol, params: S[D], body: D): D = ???
         def branch(cond: D, thn: D, els: D): D = ???
 
-        def let(vals: S[D], defs: S[D], expr: D): D = offset => {
-          s"""{
-              |${(vals map (val_ => (" " * (offset + indent)) + val_(offset + indent))).mkString("\n")}
-              |${" " * (offset + indent)}${expr(offset + indent)}
-              |${" " * offset}}
-           """.stripMargin.trim
+        def block(stats: S[D], expr: D): D = offset => {
+          val statsString = stats.map(_(offset)).mkString("\n")
+          val exprString  = expr(offset)
 
-          val valsStr = (vals map (val_ => (" " * (offset + indent)) + val_(offset + indent))).mkString("\n")
+          val resString =
+            s"""
+              |$statsString
+              |$exprString
+            """.stripMargin.trim
 
-          val defsStr = (defs map (def_ => (" " * (offset + indent)) + def_(offset + indent))).mkString("\n")
-          Seq(
-            valsStr,
-            defsStr,
-            " " * (offset + indent) + expr(offset + indent),
-            " " * offset).filter(_.trim != "").mkString("\n")
+          resString
         }
 
-        // Comprehensions
-        def comprehend(qs: S[D], hd: D): D = ???
-        def generator(lhs: u.TermSymbol, rhs: D): D = ???
-        def guard(expr: D): D = ???
-        def head(expr: D): D = ???
-        def flatten(expr: D): D = ???
+        // TODO: right now, loops are desugared into an iterator instantiation and a while loop
+        // This leads to weird translations here since the iterator is a valdef and then there is a block with the
+        // loop body. 
+        def loop(cond: D, body: D): D = offset => {
+          val x = cond
+          val y = body
+          "loop"
+        }
+
+        def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {
+          s"""
+             |${lhs.name.decodedName} = ${rhs(offset)}
+           """.stripMargin
+        }
       }
-      Core.fold(alg)(tree)(0)
+      Source.fold(alg)(tree)(0)
     }
   }
 }

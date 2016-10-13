@@ -33,73 +33,73 @@ trait Source extends Common
   object Source {
 
     /**
-     * The grammar associated with the [[Lang]] objects and accepted by the [[Source.valid]] method
-     * is as follows.
-     *
-     * {{{
-     * Sym = TermSym
-     *     | TypeSym
-     *
-     * TermSym = BindingSym
-     *         | MethodSym
-     *         | ModuleSym
-     *
-     * BindingSym = ParSym
-     *            | ValSym
-     *            | VarSym
-     *
-     * Atomic = Lit[A](value: A)
-     *        | Ref(target: TermSym)
-     *        | This(target: Sym)
-     *
-     * Ref = BindingRef(target: BindingSym)
-     *     | ModuleRef(target: ModuleSym)
-     *
-     * BindingRef = ParRef(target: ParSym)
-     *            | ValRef(target: ValSym)
-     *            | VarRef(target: VarSym)
-     *
-     * BindingDef = ParDef(lhs: ParSym)
-     *            | ValDef(lhs: ValSym, rhs: Term)
-     *            | VarDef(lhs: VarSym, rhs: Term)
-     *
-     * Term = Atomic
-     *      | Block(stats: Stat*, expr: Term)
-     *      | Branch(cond: Term, thn: Term, els: Term)
-     *      | DefCall(target: Term?, method: MethodSym, targs: Type*, argss: Term**)
-     *      | Inst(clazz: Type, targs: Type*, argss: Term**)
-     *      | Lambda(params: ParDef*, body: Term)
-     *      | ModuleAcc(target: Term, member: ModuleSym)
-     *      | PatMat(target: Term, cases: Case*)
-     *      | TypeAscr(expr: Term, tpe: Type)
-     *
-     * Loop = DoWhile(cond: Term, body: Stat)
-     *      | While(cond: Term, body: Stat)
-     *
-     * Stat = BindingDef(lhs: BindingSym, rhs: Term)
-     *      | Loop(cond: Term, body: Stat)
-     *      | VarMut(lhs: VarSym, rhs: Term)
-     *      | Term
-     *
-     * Case = Case(pat: Pat, guard: Term, body: Term)
-     *
-     * Pat = PatAlt(alternatives: Pat*)
-     *     | PatAny
-     *     | PatAscr(target: Pat, tpe: Type)
-     *     | PatAt(lhs: ValSym, rhs: Pat)
-     *     | PatConst(target: TermSym)
-     *     | PatLit[A](value: A)
-     *     | PatExtr(extr: PatExtr', args: Pat*)
-     *     | PatQual(qual: PatQual', member: TermSym)
-     *     | PatVar(lhs: ValSym)
-     *
-     * PatQual' = PatConst(target: TermSym)
-     *          | PatQual(qual: PatQual', member: TermSym)
-     *
-     * PatExtr' = TypeTree(tpe: Type)
-     *          | UnApply(qual: PatQual', unApp: MethodSym)
-     * }}}
-     */
+      * The grammar associated with the [[Lang]] objects and accepted by the [[Source.valid]] method
+      * is as follows.
+      *
+      * {{{
+      * Sym = TermSym
+      *     | TypeSym
+      *
+      * TermSym = BindingSym
+      *         | MethodSym
+      *         | ModuleSym
+      *
+      * BindingSym = ParSym
+      *            | ValSym
+      *            | VarSym
+      *
+      * Atomic = Lit[A](value: A)
+      *        | Ref(target: TermSym)
+      *        | This(target: Sym)
+      *
+      * Ref = BindingRef(target: BindingSym)
+      *     | ModuleRef(target: ModuleSym)
+      *
+      * BindingRef = ParRef(target: ParSym)
+      *            | ValRef(target: ValSym)
+      *            | VarRef(target: VarSym)
+      *
+      * BindingDef = ParDef(lhs: ParSym)
+      *            | ValDef(lhs: ValSym, rhs: Term)
+      *            | VarDef(lhs: VarSym, rhs: Term)
+      *
+      * Term = Atomic
+      *      | Block(stats: Stat*, expr: Term)
+      *      | Branch(cond: Term, thn: Term, els: Term)
+      *      | DefCall(target: Term?, method: MethodSym, targs: Type*, argss: Term**)
+      *      | Inst(clazz: Type, targs: Type*, argss: Term**)
+      *      | Lambda(params: ParDef*, body: Term)
+      *      | ModuleAcc(target: Term, member: ModuleSym)
+      *      | PatMat(target: Term, cases: Case*)
+      *      | TypeAscr(expr: Term, tpe: Type)
+      *
+      * Loop = DoWhile(cond: Term, body: Stat)
+      *      | While(cond: Term, body: Stat)
+      *
+      * Stat = BindingDef(lhs: BindingSym, rhs: Term)
+      *      | Loop(cond: Term, body: Stat)
+      *      | VarMut(lhs: VarSym, rhs: Term)
+      *      | Term
+      *
+      * Case = Case(pat: Pat, guard: Term, body: Term)
+      *
+      * Pat = PatAlt(alternatives: Pat*)
+      *     | PatAny
+      *     | PatAscr(target: Pat, tpe: Type)
+      *     | PatAt(lhs: ValSym, rhs: Pat)
+      *     | PatConst(target: TermSym)
+      *     | PatLit[A](value: A)
+      *     | PatExtr(extr: PatExtr', args: Pat*)
+      *     | PatQual(qual: PatQual', member: TermSym)
+      *     | PatVar(lhs: ValSym)
+      *
+      * PatQual' = PatConst(target: TermSym)
+      *          | PatQual(qual: PatQual', member: TermSym)
+      *
+      * PatExtr' = TypeTree(tpe: Type)
+      *          | UnApply(qual: PatQual', unApp: MethodSym)
+      * }}}
+      */
     object Lang {
       //@formatter:off
 
@@ -108,9 +108,9 @@ trait Source extends Common
 
       // Atomics
       val Atomic = api.Atomic
-      val Lit    = api.Lit
-      val Ref    = api.TermRef
-      val This   = api.This
+      val Lit = api.Lit
+      val Ref = api.TermRef
+      val This = api.This
 
       // Bindings
       val BindingRef = api.BindingRef
@@ -137,24 +137,103 @@ trait Source extends Common
       val DefCall = api.DefCall
 
       // Loops
-      val Loop    = api.Loop
-      val While   = api.While
+      val Loop = api.Loop
+      val While = api.While
       val DoWhile = api.DoWhile
 
       // Patterns
-      val Pat     = api.Pat
+      val Pat = api.Pat
       val PatCase = api.PatCase
-      val PatMat  = api.PatMat
+      val PatMat = api.PatMat
 
       // Terms
-      val Term     = api.Term
-      val Block    = api.Block
-      val Branch   = api.Branch
-      val Inst     = api.Inst
-      val Lambda   = api.Lambda
+      val Term = api.Term
+      val Block = api.Block
+      val Branch = api.Branch
+      val Inst = api.Inst
+      val Lambda = api.Lambda
       val TypeAscr = api.TypeAscr
 
       //@formatter:on
+    }
+
+    abstract class Algebra[A] {
+
+      type S[X] = Seq[X]
+      type SS[X] = Seq[Seq[X]]
+
+      def empty: A
+
+      // Atomics
+      def lit(value: Any): A
+      def this_(sym: u.Symbol): A
+      def bindingRef(sym: u.TermSymbol): A
+      def moduleRef(target: u.ModuleSymbol): A
+
+      // Definitions
+      def valDef(lhs: u.TermSymbol, rhs: A, flags: u.FlagSet): A
+      def parDef(lhs: u.TermSymbol, rhs: A, flags: u.FlagSet): A
+      def defDef(sym: u.MethodSymbol, flags: u.FlagSet, tparams: S[u.TypeSymbol], paramss: SS[A], body: A): A
+
+      // Other
+      def typeAscr(target: A, tpe: u.Type): A
+      def defCall(target: Option[A], method: u.MethodSymbol, targs: S[u.Type], argss: SS[A]): A
+      def inst(target: u.Type, targs: Seq[u.Type], argss: SS[A]): A
+      def lambda(sym: u.TermSymbol, params: S[A], body: A): A
+      def branch(cond: A, thn: A, els: A): A
+      def block(stats: S[A], expr: A): A
+
+      def loop(cond: A, body: A): A
+      def varMut(lhs: u.TermSymbol, rhs: A): A
+    }
+
+    def fold[B](a: Algebra[B])(tree: u.Tree): B = {
+
+      def fold(tree: u.Tree): B = {
+        tree match {
+
+          // Empty
+          case Lang.Empty(_) =>
+            a.empty
+          // Atomics
+          case Lang.Lit(value) =>
+            a.lit(value)
+          case Lang.This(sym) =>
+            a.this_(sym)
+          case Lang.ModuleRef(target) =>
+            a.moduleRef(target)
+          case Lang.BindingRef(sym) =>
+            a.bindingRef(sym)
+
+          // Definitions
+          case Lang.ValDef(lhs, rhs, flags) =>
+            a.valDef(lhs, fold(rhs), flags)
+          case Lang.VarDef(lhs, rhs, flags) =>
+            a.valDef(lhs, fold(rhs), flags)
+          case Lang.ParDef(lhs, rhs, flags) =>
+            a.parDef(lhs, fold(rhs), flags)
+
+
+          // Other
+          case Lang.TypeAscr(target, tpe) =>
+            a.typeAscr(fold(target), tpe)
+          case Lang.DefCall(target, method, targs, argss@_*) =>
+            a.defCall(target map fold, method, targs, argss map (_ map fold))
+          case Lang.Inst(target, targs, argss@_*) =>
+            a.inst(target, targs, argss map (_ map fold))
+          case Lang.Lambda(sym, params, body) =>
+            a.lambda(sym, params map fold, fold(body))
+          case Lang.Branch(cond, thn, els) =>
+            a.branch(fold(cond), fold(thn), fold(els))
+          case Lang.Block(stats, expr) =>
+            a.block(stats.map(fold(_)), fold(expr))
+          case Lang.Loop(cond, body) =>
+            a.loop(fold(cond), fold(body))
+          case Lang.VarMut(lhs, rhs) =>
+            a.varMut(lhs, fold(rhs))
+        }
+      }
+      fold(tree)
     }
 
     // -------------------------------------------------------------------------
@@ -172,12 +251,12 @@ trait Source extends Common
     // -------------------------------------------------------------------------
 
     /**
-     * Applies the following chain of transformations in order to bring the
-     * Source tree into a regular form.
-     *
-     * - [[PatternMatching.destruct]]
-     * - [[Foreach2Loop.transform]]
-     */
+      * Applies the following chain of transformations in order to bring the
+      * Source tree into a regular form.
+      *
+      * - [[PatternMatching.destruct]]
+      * - [[Foreach2Loop.transform]]
+      */
     lazy val normalize = {
       PatternMatching.destruct
     } andThen {
