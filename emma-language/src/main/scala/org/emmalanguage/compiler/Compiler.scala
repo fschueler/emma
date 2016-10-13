@@ -43,6 +43,14 @@ trait Compiler extends AlphaEq with Source with Core with Backend {
     Source.normalize
   )
 
+  lazy val dmlPreProcess: Seq[u.Tree => u.Tree] = Seq(
+    fixLambdaTypes,
+    stubTypeTrees,
+    unQualifyStatics,
+    normalizeStatements,
+    Source.normalize
+  )
+
   /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */
   lazy val postProcess: Seq[u.Tree => u.Tree] = Seq(
     qualifyStatics,
@@ -52,6 +60,15 @@ trait Compiler extends AlphaEq with Source with Core with Backend {
   /** The identity transformation with pre- and post-processing. */
   def identity(typeCheck: Boolean = false): u.Tree => u.Tree =
     pipeline(typeCheck)()
+
+  /** applies pre and post-[rocessing specific to the DML generation */
+  def dmlPipeline(typeCheck: Boolean = false): u.Tree => u.Tree = {
+    val bld = Seq.newBuilder[u.Tree => u.Tree]
+    if (typeCheck) bld += { api.Type.check(_) }
+    bld ++= dmlPreProcess
+    bld ++= postProcess
+    Function.chain(bld.result())
+  }
 
   /** Combines a sequence of `transformations` into a pipeline with pre- and post-processing. */
   def pipeline(typeCheck: Boolean = false, withPre: Boolean = true, withPost: Boolean = true)

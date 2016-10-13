@@ -33,12 +33,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
   import universe._
 
   val idPipeline: c.Expr[Any] => u.Tree =
-    identity(typeCheck = false).compose(_.tree)
-
-  val anfPipeline: u.Expr[Any] => u.Tree =
-    pipeline(typeCheck = false)(
-      Core.anf andThen Core.inlineLetExprs
-    ).compose(_.tree)
+    dmlPipeline(typeCheck = false).compose(_.tree)
 
   val toDML: u.Tree => String =
     tree => Core.generateDML(tree)

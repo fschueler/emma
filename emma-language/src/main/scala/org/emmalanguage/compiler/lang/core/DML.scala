@@ -159,6 +159,18 @@ private[core] trait DML extends Common {
         }
       }
 
+
+      def constructForLoop(target: D,  method: u.MethodSymbol, arg: D, offset: Int): String = {
+
+        val ret = s"""
+           |for (${target(offset)}) {
+           |  ${arg(offset)}
+           |}
+           |""".stripMargin.trim
+
+        ret
+      }
+
       val escape = (str: String) => str
         .replace("\b", "\\b")
         .replace("\n","\\n")
@@ -204,7 +216,14 @@ private[core] trait DML extends Common {
             ""
         }
 
-        def parDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = ???
+        def parDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset => {
+          val ls = lhs
+          val rs = rhs(offset)
+          val fls = flags
+          val ret = "__parDef"
+          ret
+        }
+
         def defDef(sym: u.MethodSymbol, flags: u.FlagSet, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = ???
 
         // Other
@@ -241,9 +260,26 @@ private[core] trait DML extends Common {
                 printConstructor(method, argss, offset)
               }
 
+                // methods from scala.predef with one argument (println(...) etc.)
+              else if (module == "Predef") {
+                val name = method.name.decodedName
+
+                name match {
+                  case u.TermName("println")    => s"print(${arg(offset)})"
+                  case u.TermName("intWrapper") => s"${arg(offset)}"
+                  case _ => abort(s"scala.predef.$name is not supported in DML", method.pos)
+                }
+              }
+
                 // binary operators
               else {
-                s"($module ${method.name.decodedName} ${args(0)})"
+                method.name.decodedName match {
+                  case u.TermName("to")      => s"${tgt(offset)}:${arg(offset)}"
+                  case u.TermName("foreach") => {
+                    constructForLoop(tgt, method, arg, offset)
+                  }
+                  case _ => s"($module ${method.name.decodedName} ${args(0)})"
+                }
               }
             }
 
@@ -281,7 +317,9 @@ private[core] trait DML extends Common {
                 printBuiltin(tgt, method, argss, offset)
               }
 
-              else "case (Some(tgt), (x :: xs) :: Nil)"
+              else {
+                "case (Some(tgt), (x :: xs) :: Nil)"
+              }
             }
 
             case (Some(tgt), _) => {
@@ -292,8 +330,14 @@ private[core] trait DML extends Common {
               s"case (None, _)"
           }
         }
+
         def inst(target: u.Type, targs: Seq[u.Type], argss: SS[D]): D = ???
-        def lambda(sym: u.TermSymbol, params: S[D], body: D): D = ???
+
+        def lambda(sym: u.TermSymbol, params: S[D], body: D): D = offset =>{
+          val ret = body(offset)
+          ret
+        }
+
         def branch(cond: D, thn: D, els: D): D = ???
 
         def block(stats: S[D], expr: D): D = offset => {
@@ -313,9 +357,11 @@ private[core] trait DML extends Common {
         // This leads to weird translations here since the iterator is a valdef and then there is a block with the
         // loop body. 
         def loop(cond: D, body: D): D = offset => {
-          val x = cond
-          val y = body
-          "loop"
+          s"""
+             |while(${cond(offset)}) {
+             |  ${body(offset)}
+             |}
+           """.stripMargin.trim
         }
 
         def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {

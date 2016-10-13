@@ -40,19 +40,13 @@ class DMLSpec extends BaseCompilerSpec {
   // ---------------------------------------------------------------------------
   // Transformation pipelines
   // ---------------------------------------------------------------------------
-
-  val anfPipeline: u.Expr[Any] => u.Tree =
-    compiler.pipeline(typeCheck = true)(
-      Core.anf andThen Core.inlineLetExprs
-    ).compose(_.tree)
-
-  val liftPipeline: u.Expr[Any] => u.Tree =
-    compiler.pipeline(typeCheck = true)(
-      Core.anf
-    ).compose(_.tree)
-
-  val prettyPrint: u.Tree => String =
-    tree => time(Core.prettyPrint(tree), "pretty print")
+  override val idPipeline: u.Expr[Any] => u.Tree = {
+    (_: u.Expr[Any]).tree
+  } andThen {
+    compiler.dmlPipeline(typeCheck = true)
+  } andThen {
+    checkCompile
+  }
 
   val toDML: u.Tree => String =
     tree => time(Core.generateDML(tree), "generate dml")
@@ -103,14 +97,14 @@ class DMLSpec extends BaseCompilerSpec {
   "Matrix construction" - {
 
     "from rand" in {
-    val act = toDML(idPipeline(u.reify {
-      val x$01 = Matrix.rand(3, 3)
-    }))
+      val act = toDML(idPipeline(u.reify {
+        val x$01 = Matrix.rand(3, 3)
+      }))
 
-    val exp =
-      """
-        |x$01 = rand(rows=3, cols=3)
-      """.stripMargin.trim
+      val exp =
+        """
+          |x$01 = rand(rows=3, cols=3)
+        """.stripMargin.trim
 
       act shouldEqual exp
     }
@@ -255,25 +249,46 @@ class DMLSpec extends BaseCompilerSpec {
 
   "Control flow" - {
 
-    "For loop" in {
+    "For loop" - {
 
-      val act = toDML(idPipeline(u.reify {
-        var A = 5
-        for (i <- 1 to 20) {
-          A = A + 1
-        }
-      }))
+      "without closure modification" in {
+        val act = toDML(idPipeline(u.reify {
+          for (i <- 1 to 20) {
+            println(i)
+          }
+        }))
 
-      val exp =
-        """
-          |A = 5;
-          |for (i in 1:20) {
-          |  A = A + 1;
-          |}
-        """.stripMargin.trim
+        val exp =
+          """
+            |for (i in 1:20) {
+            |  print(i)
+            |}
+          """.
+            stripMargin.trim
 
-      act shouldEqual exp
+        act shouldEqual exp
+      }
 
+      "with closure modificiation" in {
+
+        val act = toDML(idPipeline(u.reify {
+          var A = 5
+          for (i <- 1 to 20) {
+            A = A + 1
+          }
+        }))
+
+        val exp =
+          """
+            |A = 5
+            |for (i in 1:20) {
+            |  A = A + 1
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
     }
   }
 }
