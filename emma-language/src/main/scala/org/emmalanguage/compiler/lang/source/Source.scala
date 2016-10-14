@@ -184,7 +184,6 @@ trait Source extends Common
       def branch(cond: A, thn: A, els: A): A
       def block(stats: S[A], expr: A): A
 
-      def loop(cond: A, body: A): A
       def varMut(lhs: u.TermSymbol, rhs: A): A
     }
 
@@ -231,8 +230,6 @@ trait Source extends Common
             a.branch(fold(cond), fold(thn), fold(els))
           case Lang.Block(stats, expr) =>
             a.block(stats.map(fold(_)), fold(expr))
-          case Lang.Loop(cond, body) =>
-            a.loop(fold(cond), fold(body))
           case Lang.VarMut(lhs, rhs) =>
             a.varMut(lhs, fold(rhs))
         }

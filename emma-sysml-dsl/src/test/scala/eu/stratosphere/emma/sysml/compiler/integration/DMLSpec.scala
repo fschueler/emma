@@ -337,7 +337,7 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |for (i in 1:10) {
             |  for (j in 90:99) {
-            |    print(i + j)
+            |    print((i + j))
             |  }
             |}
           """.
@@ -362,8 +362,8 @@ class DMLSpec extends BaseCompilerSpec {
             |b = 6
             |for (i in 1:10) {
             |  for (j in 90:99) {
-            |    a = a + i
-            |    b = b + i
+            |    a = (a + i)
+            |    b = (b + j)
             |  }
             |}
           """.

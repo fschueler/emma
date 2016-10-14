@@ -217,11 +217,14 @@ private[core] trait DML extends Common {
         }
 
         def parDef(lhs: u.TermSymbol, rhs: D, flags: u.FlagSet): D = offset => {
-          val ls = lhs
-          val rs = rhs(offset)
-          val fls = flags
-          val ret = "__parDef"
-          ret
+          val l = lhs.name.decodedName
+          val r = rhs(offset)
+
+          if (r.isEmpty) {
+            l.toString
+          } else {
+            s"$l = $r"
+          }
         }
 
         def defDef(sym: u.MethodSymbol, flags: u.FlagSet, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = ???
@@ -335,9 +338,11 @@ private[core] trait DML extends Common {
 
         def inst(target: u.Type, targs: Seq[u.Type], argss: SS[D]): D = ???
 
-        def lambda(sym: u.TermSymbol, params: S[D], body: D): D = offset =>{
-          val ret = body(offset)
-          ret
+        def lambda(sym: u.TermSymbol, params: S[D], body: D): D = offset => {
+          val p = params.map(p => p(offset))
+          val b = body(offset)
+
+          s"""(${p.mkString(", ")}) => $b"""
         }
 
         def branch(cond: D, thn: D, els: D): D = ???
@@ -355,19 +360,24 @@ private[core] trait DML extends Common {
           resString
         }
 
-        // TODO: right now, loops are desugared into an iterator instantiation and a while loop
-        // This leads to weird translations here since the iterator is a valdef and then there is a block with the
-        // loop body. 
-        def loop(cond: D, body: D): D = offset => {
-          s"""
-             |while(${cond(offset)}) {
-             |  ${body(offset)}
-             |}
-           """.stripMargin.trim
-        }
+        /** constructs a for loop by deconstructing foreach together with the range and the lambda */
+        def forLoop(target: D, targs: S[u.Type], args: S[D]): D = offset => {
+          val range = target(offset)
+          val lambda = args.map(x => x(offset)).head
 
-        def forLoop(target: D, targs: S[u.Type], args: S[D]): D = offset =>
-          " "
+          val parts = lambda.split(" => ")
+          val idx = parts(0).drop(1).dropRight(1) // remove braces
+          val body = parts(1)
+
+          val loop =
+            s"""
+               |for ($idx in $range) {
+               |  $body
+               |}
+             """.stripMargin.trim
+
+          loop
+        }
 
         def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {
           s"""
