@@ -327,8 +327,16 @@ private[core] trait DML extends Common {
               }
             }
 
+              // matches functions without arguments (.t (transpose))
+            case (Some(tgt), Nil) => {
+              method.name.decodedName match {
+                case u.TermName("t") => s"t(${tgt(offset)})"
+                case _   => "case (Some(tgt), Nil)"
+              }
+            }
+
             case (Some(tgt), _) => {
-              "case (Some(tgt), _)"
+              s"case (Some(tgt), _)"
             }
 
             case (None, _) =>
