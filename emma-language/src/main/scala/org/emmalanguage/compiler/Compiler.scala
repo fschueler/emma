@@ -45,10 +45,10 @@ trait Compiler extends AlphaEq with Source with Core with Backend {
 
   lazy val dmlPreProcess: Seq[u.Tree => u.Tree] = Seq(
     fixLambdaTypes,
-    stubTypeTrees,
+    //stubTypeTrees,
     unQualifyStatics,
     normalizeStatements,
-    Source.normalize
+    Source.dmlNormalize
   )
 
   /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */

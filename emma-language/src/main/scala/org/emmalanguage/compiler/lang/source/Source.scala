@@ -178,6 +178,7 @@ trait Source extends Common
       // Other
       def typeAscr(target: A, tpe: u.Type): A
       def defCall(target: Option[A], method: u.MethodSymbol, targs: S[u.Type], argss: SS[A]): A
+      def forLoop(target: A, targs: S[u.Type], argss: S[A]): A // this is a speciall defcall where method is foreach
       def inst(target: u.Type, targs: Seq[u.Type], argss: SS[A]): A
       def lambda(sym: u.TermSymbol, params: S[A], body: A): A
       def branch(cond: A, thn: A, els: A): A
@@ -217,6 +218,9 @@ trait Source extends Common
           // Other
           case Lang.TypeAscr(target, tpe) =>
             a.typeAscr(fold(target), tpe)
+          case Lang.DefCall(Some(xs), method, targs, args@Seq(Lang.Lambda(_, Seq(_), body)))
+            if method == api.Sym.foreach || method.overrides.contains(api.Sym.foreach) =>
+            a.forLoop(fold(xs), targs, args.map(fold(_)))
           case Lang.DefCall(target, method, targs, argss@_*) =>
             a.defCall(target map fold, method, targs, argss map (_ map fold))
           case Lang.Inst(target, targs, argss@_*) =>

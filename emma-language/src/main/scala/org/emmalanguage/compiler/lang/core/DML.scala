@@ -227,7 +227,9 @@ private[core] trait DML extends Common {
         def defDef(sym: u.MethodSymbol, flags: u.FlagSet, tparams: S[u.TypeSymbol], paramss: SS[D], body: D): D = ???
 
         // Other
-        def typeAscr(target: D, tpe: u.Type): D = ???
+
+        /** type ascriptions such as `var x: Int` */
+        def typeAscr(target: D, tpe: u.Type): D = offset => "" // TODO check for types allowed in SystemML
 
         def defCall(target: Option[D], method: u.MethodSymbol, targs: S[u.Type], argss: SS[D]): D = offset => {
           val s = target
@@ -363,6 +365,9 @@ private[core] trait DML extends Common {
              |}
            """.stripMargin.trim
         }
+
+        def forLoop(target: D, targs: S[u.Type], args: S[D]): D = offset =>
+          " "
 
         def varMut(lhs: u.TermSymbol, rhs: D): D = offset => {
           s"""

@@ -20,7 +20,6 @@
 package eu.stratosphere.emma.sysml.compiler.integration
 
 import org.emmalanguage.compiler.BaseCompilerSpec
-
 import eu.stratosphere.emma.sysml.api._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
@@ -154,30 +153,66 @@ class DMLSpec extends BaseCompilerSpec {
 
   "Definitions" - {
 
-    "Values" in {
-      val act = toDML(idPipeline(u.reify {
-        val a = 5
-      }))
+    "Values" - {
 
-      val exp =
-        """
-          |a = 5
-        """.stripMargin.trim
+      "without type ascription" in {
 
-      act shouldEqual exp
+        val act = toDML(idPipeline(u.reify {
+          val a = 5
+        }))
+
+        val exp =
+          """
+            |a = 5
+          """.stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+      "with type ascription" in {
+
+        val act = toDML(idPipeline(u.reify {
+          val a: Int = 5
+        }))
+
+        val exp =
+          """
+            |a = 5
+          """.stripMargin.trim
+
+        act shouldEqual exp
+      }
     }
 
-    "Variables" in {
-      val act = toDML(idPipeline(u.reify {
-        var a = 5
-      }))
+    "Variables" - {
 
-      val exp =
-        """
-          |a = 5
-        """.stripMargin.trim
+      "without type ascription" in {
 
-      act shouldEqual exp
+        val act = toDML(idPipeline(u.reify {
+          var a = 5
+        }))
+
+        val exp =
+          """
+            |a = 5
+          """.stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+      "with type ascription" in {
+
+        val act = toDML(idPipeline(u.reify {
+          var a: Int = 5
+        }))
+
+        val exp =
+          """
+            |a = 5
+          """.stripMargin.trim
+
+        act shouldEqual exp
+      }
     }
   }
 
@@ -276,6 +311,7 @@ class DMLSpec extends BaseCompilerSpec {
           for (i <- 1 to 20) {
             A = A + 1
           }
+          ()
         }))
 
         val exp =
@@ -283,6 +319,52 @@ class DMLSpec extends BaseCompilerSpec {
             |A = 5
             |for (i in 1:20) {
             |  A = A + 1
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+      "with multiple generators without closure modification" in {
+        val act = toDML(idPipeline(u.reify {
+          for (i <- 1 to 10; j <- 90 to 99) {
+            println(i + j)
+          }
+        }))
+
+        val exp =
+          """
+            |for (i in 1:10) {
+            |  for (j in 90:99) {
+            |    print(i + j)
+            |  }
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+      "with multiple generators with closure modification" in {
+        val act = toDML(idPipeline(u.reify {
+          var a = 5
+          var b = 6
+          for (i <- 1 to 10; j <- 90 to 99) {
+            a = a + i
+            b = b + j
+          }
+        }))
+
+        val exp =
+          """
+            |a = 5
+            |b = 6
+            |for (i in 1:10) {
+            |  for (j in 90:99) {
+            |    a = a + i
+            |    b = b + i
+            |  }
             |}
           """.
             stripMargin.trim
