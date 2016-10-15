@@ -307,11 +307,10 @@ class DMLSpec extends BaseCompilerSpec {
       "with closure modificiation" in {
 
         val act = toDML(idPipeline(u.reify {
-          var A = 5
-          for (i <- 1 to 20) {
-            A = A + 1
-          }
-          ()
+            var A = 5
+            for (i <- 1 to 20) {
+              A = A + 1
+            }
         }))
 
         val exp =

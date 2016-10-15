@@ -280,9 +280,9 @@ private[core] trait DML extends Common {
               else {
                 method.name.decodedName match {
                   case u.TermName("to")      => s"${tgt(offset)}:${arg(offset)}"
-                  case u.TermName("foreach") => {
-                    constructForLoop(tgt, method, arg, offset)
-                  }
+//                  case u.TermName("foreach") => {
+//                    constructForLoop(tgt, method, arg, offset)
+//                  }
                   case _ => s"($module ${method.name.decodedName} ${args(0)})"
                 }
               }
@@ -375,7 +375,7 @@ private[core] trait DML extends Common {
 
           val parts = lambda.split(" => ")
           val idx = parts(0).drop(1).dropRight(1) // remove braces
-          val body = parts(1)
+          val body = parts(1).stripMargin.trim
 
           val loop =
             s"""

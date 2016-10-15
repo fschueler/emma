@@ -70,6 +70,26 @@ class RewriteMacrosSpec extends FreeSpec with Matchers {
     val res = alg.run()
   }
 
+  "For loop" in {
+
+    val loop = parallelize {
+      val A = Matrix.rand(3, 3)
+      val B = Matrix.rand(3, 3)
+      var C = Matrix.zeros(3, 3)
+
+      val iter = 10
+      var s = 0.0
+
+      for (i <- 1 to iter) {
+        C = A %*% B
+        s = sum(C)
+        println(s)
+      }
+    }
+
+    val res = loop.run()
+  }
+
   "MinMaxMean from DataFrame" in {
     val numRows = 10000
     val numCols = 1000
