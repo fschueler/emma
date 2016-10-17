@@ -410,5 +410,33 @@ class DMLSpec extends BaseCompilerSpec {
         act shouldEqual exp
       }
     }
+
+    "If-then-else" - {
+
+      "with simple predicate" in {
+        val act = toDML(idPipeline(u.reify {
+          val x = 5
+
+          if (x == 5) {
+            println("x is 5!")
+          } else {
+            println("x is not 5!")
+          }
+        }))
+
+        val exp =
+          """
+            |x = 5
+            |if ((x == 5)) {
+            |  print("x is 5!")
+            |} else {
+            |  print("x is not 5!")
+            |}
+          """.
+            stripMargin.trim
+
+        act shouldEqual exp
+      }
+    }
   }
 }

@@ -353,7 +353,15 @@ private[core] trait DML extends Common {
           s"""(${p.mkString(", ")}) => $b"""
         }
 
-        def branch(cond: D, thn: D, els: D): D = ???
+        def branch(cond: D, thn: D, els: D): D = offset => {
+          s"""
+             |if (${cond(offset)}) {
+             |  ${thn(offset)}
+             |} else {
+             |  ${els(offset)}
+             |}
+           """.stripMargin.trim
+        }
 
         def block(stats: S[D], expr: D): D = offset => {
           val statsString = stats.map(_(offset)).mkString("\n")
