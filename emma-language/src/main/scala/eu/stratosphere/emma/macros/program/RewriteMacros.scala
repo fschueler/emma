@@ -61,9 +61,13 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
       case u.Block(_, expr) => expr match {
         case l: u.Literal => (l.tpe, List(l.value))
         case a: u.Apply if a.symbol.name == u.TermName("apply") => (a.tpe, a.args)
-        case _ => (expr.tpe, List(expr))
+        case _ if expr.tpe =:= typeOf[Unit] =>
+          (expr.tpe, List())
+        case _ =>
+          (expr.tpe, List(expr))
       }
-      case _ => (e.tree.tpe, e.tree)
+      case _ =>
+        (e.tree.tpe, e.tree)
     }
 
     // generate the actual DML code
@@ -79,8 +83,11 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
       case ls => ls
     }
 
+    // if the return type is Unit, we don't want to call getTuple
+    val result = if (outParams.isEmpty) q"()" else q"res.getTuple[..${outTypes}](..${outParams})"
+
     // this is a workaround for the fact that MLContext only returns tuples
-    val out = if (outTypes.length == 1) q"out._1" else q"out"
+    val out = if (outTypes.length == 1 && !outParams.isEmpty) q"out._1" else q"out"
 
     // Construct algorithm object
     val alg = q"""
@@ -94,10 +101,11 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
       import _root_.scala.reflect._
 
       def run(): ${u.weakTypeOf[T]} = {
-        println("Running script:" + ${dmlString})
+        println("Running script:\n" + ${dmlString})
         val ml = implicitly[MLContext]
         val script = dml($dmlString).in(Seq(..${inParams})).out(..${outParams})
-        val out = ml.execute(script).getTuple[..${outTypes}](..${outParams})
+        val res = ml.execute(script)
+        val out = $result
 
         $out
       }
