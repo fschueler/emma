@@ -68,26 +68,65 @@ class DMLSpec extends BaseCompilerSpec {
       }
     }
 
-    "References" in {
-      val acts = idPipeline(u.reify {
-        val x = 1
-        val y = 2
-        val * = 3
-        val `p$^s` = 4
-        val ⋈ = 5
-        val `foo and bar` = 6
-        x * y * `*` * `p$^s` * ⋈ * `foo and bar`
-      }) collect {
-        case act@core.Ref(_) => toDML(act)
+    "References" - {
+
+      "In expressions" in {
+        val acts = idPipeline(u.reify {
+          val x = 1
+          val y = 2
+          val * = 3
+          val `p$^s` = 4
+          val ⋈ = 5
+          val `foo and bar` = 6
+          x * y * `*` * `p$^s` * ⋈ * `foo and bar`
+        }) collect {
+          case act@core.Ref(_) => toDML(act)
+        }
+
+        val exps = Seq(
+          "x", "y", "*", "p$^s", "⋈", "foo and bar"
+        )
+
+        (acts zip exps) foreach { case (act, exp) =>
+          act shouldEqual exp
+        }
       }
 
-      val exps = Seq(
-        "x", "y", "*", "p$^s", "⋈", "foo and bar"
-      )
+      "As single line return statements" in {
 
-      (acts zip exps) foreach { case (act, exp) =>
+        val act = toDML(idPipeline(u.reify{
+          val a = 5
+          a
+        }))
+
+        val exp =
+          s"""
+             |a = 5
+             |x1 = a
+           """.stripMargin.trim
+
         act shouldEqual exp
       }
+
+      "As single line statements between other statements" in {
+
+        val act = toDML(idPipeline(u.reify{
+          val a = 5
+          a
+          val b = 6
+        }))
+
+        val exp =
+          s"""
+             |a = 5
+             |x1 = a
+             |b = 6
+           """.stripMargin.trim
+
+        act shouldEqual exp
+      }
+
+
     }
 
     "This" is pending

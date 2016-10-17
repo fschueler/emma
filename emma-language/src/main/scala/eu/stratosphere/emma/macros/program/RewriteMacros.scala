@@ -87,7 +87,7 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
     val result = if (outParams.isEmpty) q"()" else q"res.getTuple[..${outTypes}](..${outParams})"
 
     // this is a workaround for the fact that MLContext only returns tuples
-    val out = if (outTypes.length == 1 && !outParams.isEmpty) q"out._1" else q"out"
+    val out = if (outTypes.length == 1 && outParams.nonEmpty) q"out._1" else q"out"
 
     // Construct algorithm object
     val alg = q"""
