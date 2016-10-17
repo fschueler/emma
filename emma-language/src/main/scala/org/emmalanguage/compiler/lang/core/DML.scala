@@ -293,7 +293,7 @@ private[core] trait DML extends Common {
               val module = tgt(offset)
               val argString = args.mkString(" ")
 
-              if (module == "Seq") { // sequence constructors
+              if (module == "Seq" || module == "Array") { // sequence/array constructors
                 s""""$argString""""
               }
 
