@@ -159,18 +159,6 @@ private[core] trait DML extends Common {
         }
       }
 
-
-      def constructForLoop(target: D,  method: u.MethodSymbol, arg: D, offset: Int): String = {
-
-        val ret = s"""
-           |for (${target(offset)}) {
-           |  ${arg(offset)}
-           |}
-           |""".stripMargin.trim
-
-        ret
-      }
-
       val escape = (str: String) => str
         .replace("\b", "\\b")
         .replace("\n","\\n")
@@ -364,7 +352,7 @@ private[core] trait DML extends Common {
         }
 
         def block(stats: S[D], expr: D): D = offset => {
-          val statsString = stats.map(_(offset)).mkString("\n")
+          val statsString = stats.map{x => val res = x(offset); res.trim.replaceAll("\n", "")}.mkString("\n")
           val exprString  = expr(offset)
 
           val resString =
@@ -388,7 +376,7 @@ private[core] trait DML extends Common {
           val loop =
             s"""
                |for ($idx in $range) {
-               |  $body
+               |$body
                |}
              """.stripMargin.trim
 

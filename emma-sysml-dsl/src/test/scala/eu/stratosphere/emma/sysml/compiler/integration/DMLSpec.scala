@@ -335,7 +335,7 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           """
             |for (i in 1:20) {
-            |  print(i)
+            |print(i)
             |}
           """.
             stripMargin.trim
@@ -356,7 +356,7 @@ class DMLSpec extends BaseCompilerSpec {
           """
             |A = 5
             |for (i in 1:20) {
-            |  A = A + 1
+            |A = A + 1
             |}
           """.
             stripMargin.trim
@@ -374,9 +374,9 @@ class DMLSpec extends BaseCompilerSpec {
         val exp =
           """
             |for (i in 1:10) {
-            |  for (j in 90:99) {
-            |    print((i + j))
-            |  }
+            |for (j in 90:99) {
+            |print((i + j))
+            |}
             |}
           """.
             stripMargin.trim
@@ -399,10 +399,10 @@ class DMLSpec extends BaseCompilerSpec {
             |a = 5
             |b = 6
             |for (i in 1:10) {
-            |  for (j in 90:99) {
-            |    a = (a + i)
-            |    b = (b + j)
-            |  }
+            |for (j in 90:99) {
+            |a = (a + i)
+            |b = (b + j)
+            |}
             |}
           """.
             stripMargin.trim
