@@ -1,4 +1,4 @@
-package eu.stratosphere.emma.sysml.api
+package org.apache.sysml.api
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

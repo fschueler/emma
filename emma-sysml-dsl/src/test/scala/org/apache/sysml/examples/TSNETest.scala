@@ -1,6 +1,7 @@
-package eu.stratosphere.emma.sysml.examples
+package org.apache.sysml.examples
 
-import eu.stratosphere.emma.sysml.api.Matrix
+import org.apache.sysml.api.examples.TSNE
+import org.apache.sysml.api.linalg.Matrix
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FreeSpec, Matchers}

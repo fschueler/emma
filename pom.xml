@@ -656,6 +656,7 @@
         <module>emma-gui</module>
         <module>emma-quickstart</module>
         <module>emma-sysml-dsl</module>
+        <module>emma-sysml-macros</module>
     </modules>
 
 </project>

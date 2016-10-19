@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.emmalanguage
-package compiler.lang.core
+package org.apache.sysml.compiler.lang.source
 
-import compiler.Common
-import compiler.lang.source.Source
+import org.emmalanguage.compiler.Common
+import org.emmalanguage.compiler.lang.core.Core
+import org.emmalanguage.compiler.lang.source.Source
 
 import scala.collection.mutable
 
-private[core] trait DML extends Common {
+private[compiler] trait DML extends Common {
   this: Source with Core =>
 
   import Core.{Lang => core}
   import Source.{Lang => src}
-  import UniverseImplicits._
 
   object DMLTransform {
     type D = Int => String // semantic domain (offset => string representation)

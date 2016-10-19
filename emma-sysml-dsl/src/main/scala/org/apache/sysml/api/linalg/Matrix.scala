@@ -17,11 +17,12 @@
  * under the License.
  */
 
-package eu.stratosphere.emma.sysml.api
+package org.apache.sysml.api.linalg
 
 import breeze.linalg.{Matrix => _, Vector => _, _}
 import breeze.numerics._
 import org.apache.spark.sql.DataFrame
+import org.apache.sysml.api.linalg.api.:::
 
 import scala.util.Random
 

@@ -1,5 +1,7 @@
-package eu.stratosphere.emma.sysml.api
+package org.apache.sysml.api.linalg
 
+import org.apache.sysml.api.linalg.api._
+import org.apache.sysml.api.{BaseAPISpec, linalg}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -71,14 +73,14 @@ class MatrixSpec extends BaseAPISpec {
 
       "by single row" in {
         val r = A(1, :::)
-        val exp = Vector(Seq(1.0, 4.0, 7.0)).t
+        val exp = linalg.Vector(Seq(1.0, 4.0, 7.0)).t
 
         assert(r.impl === exp.impl)
       }
 
       "by single column" in {
         val c = A(:::, 1)
-        val exp = Vector(Seq(3.0, 4.0, 5.0))
+        val exp = linalg.Vector(Seq(3.0, 4.0, 5.0))
 
         assert(c.impl === exp.impl)
       }
@@ -121,7 +123,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "by row" in {
         val A = Matrix.zeros(3, 3)
-        val b = Vector(Seq(0.0, 1.0, 2.0)).t
+        val b = linalg.Vector(Seq(0.0, 1.0, 2.0)).t
 
         A(1,:::) = b
         val exp = Matrix(Seq(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0), 3, 3)
@@ -131,7 +133,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "by column" in {
         val A = Matrix.zeros(3, 3)
-        val b = Vector(Seq(0.0, 1.0, 2.0))
+        val b = linalg.Vector(Seq(0.0, 1.0, 2.0))
 
         A(:::, 1) = b
         val exp = Matrix(Seq(0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0), 3, 3)
@@ -199,7 +201,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A + b
 
         val expected = Matrix(Seq(2.0, 4.0, 4.0, 6.0), 2, 2)
@@ -209,7 +211,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A + b.t
 
         val expected = Matrix(Seq(2.0, 4.0, 4.0, 6.0), 2, 2)
@@ -232,7 +234,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A + b
         val thrown = the [IllegalArgumentException] thrownBy A + b
@@ -241,7 +243,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A + b.t
         val thrown = the [IllegalArgumentException] thrownBy A + b.t
@@ -275,7 +277,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A - b
 
         val expected = Matrix(Seq(0.0, 0.0, 2.0, 2.0), 2, 2)
@@ -285,7 +287,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A - b.t
 
         val expected = Matrix(Seq(0.0, 0.0, 2.0, 2.0), 2, 2)
@@ -308,7 +310,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A - b
         val thrown = the [IllegalArgumentException] thrownBy A - b
@@ -317,7 +319,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A - b.t
         val thrown = the [IllegalArgumentException] thrownBy A - b.t
@@ -351,7 +353,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A * b
 
         val expected = Matrix(Seq(1.0, 4.0, 3.0, 8.0), 2, 2)
@@ -361,7 +363,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A * b.t
 
         val expected = Matrix(Seq(1.0, 4.0, 3.0, 8.0), 2, 2)
@@ -383,7 +385,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector with matching inner dimensions" in {
         val A = Matrix.zeros(10, 10)
-        val b = Vector.rand(10)
+        val b = linalg.Vector.rand(10)
         val r = A %*% b
       }
 
@@ -400,7 +402,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A * b
         val thrown = the [IllegalArgumentException] thrownBy A * b
@@ -409,7 +411,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A * b.t
         val thrown = the [IllegalArgumentException] thrownBy A * b.t
@@ -427,7 +429,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector with non-matching inner dimensions" in {
         val A = Matrix.zeros(9, 9)
-        val b = Vector.rand(10)
+        val b = linalg.Vector.rand(10)
 
         an [IllegalArgumentException] should be thrownBy A %*% b
         val thrown = the [IllegalArgumentException] thrownBy A %*% b
@@ -460,7 +462,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A / b
 
         val expected = Matrix(Seq(1.0, 1.0, 3.0, 2.0), 2, 2)
@@ -470,7 +472,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with matching length" in {
         val A = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
-        val b = Vector(Seq(1.0, 2.0))
+        val b = linalg.Vector(Seq(1.0, 2.0))
         val R = A / b.t
 
         val expected = Matrix(Seq(1.0, 1.0, 3.0, 2.0), 2, 2)
@@ -501,7 +503,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per column with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A / b
         val thrown = the [IllegalArgumentException] thrownBy A / b
@@ -510,7 +512,7 @@ class MatrixSpec extends BaseAPISpec {
 
       "a vector per row with non-matching length" in {
         val A = Matrix.rand(10, 10)
-        val b = Vector.rand(9)
+        val b = linalg.Vector.rand(9)
 
         an [IllegalArgumentException] should be thrownBy A / b.t
         val thrown = the [IllegalArgumentException] thrownBy A / b.t

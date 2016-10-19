@@ -17,15 +17,16 @@
  * under the License.
  */
 
-package eu.stratosphere.emma.sysml.compiler.integration
+package org.apache.sysml.compiler
 
-import org.emmalanguage.compiler.BaseCompilerSpec
-import eu.stratosphere.emma.sysml.api._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.api._
+import org.apache.sysml.compiler.lang.source.DML
+import org.emmalanguage.compiler.{BaseCompilerSpec, RuntimeCompiler}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import resource._
 
 import scala.util.Random
 
@@ -34,7 +35,7 @@ import scala.util.Random
 class DMLSpec extends BaseCompilerSpec {
 
   import compiler._
-  import Core.{Lang => core}
+  import Source.{Lang => src}
 
   // ---------------------------------------------------------------------------
   // Transformation pipelines
@@ -42,13 +43,13 @@ class DMLSpec extends BaseCompilerSpec {
   override val idPipeline: u.Expr[Any] => u.Tree = {
     (_: u.Expr[Any]).tree
   } andThen {
-    compiler.dmlPipeline(typeCheck = true)
+    pipeline(typeCheck = true)()
   } andThen {
     checkCompile
   }
 
   val toDML: u.Tree => String =
-    tree => time(Core.generateDML(tree), "generate dml")
+    tree => time(generateDML(tree), "generate dml")
 
   "Atomics:" - {
 
@@ -56,7 +57,7 @@ class DMLSpec extends BaseCompilerSpec {
       val acts = idPipeline(u.reify(
         42, 42L, 3.14, 3.14F, .1e6, 'c', "string", ()
       )) collect {
-        case act@core.Lit(_) => toDML(act)
+        case act@src.Lit(_) => toDML(act)
       }
 
       val exps = Seq(
@@ -80,7 +81,7 @@ class DMLSpec extends BaseCompilerSpec {
           val `foo and bar` = 6
           x * y * `*` * `p$^s` * ⋈ * `foo and bar`
         }) collect {
-          case act@core.Ref(_) => toDML(act)
+          case act@src.Ref(_) => toDML(act)
         }
 
         val exps = Seq(

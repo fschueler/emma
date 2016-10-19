@@ -1,6 +1,7 @@
-package eu.stratosphere.emma.sysml.examples
+package org.apache.sysml.api.examples
 
-import eu.stratosphere.emma.sysml.api._
+import org.apache.sysml.api.linalg._
+import org.apache.sysml.api.linalg.api._
 
 object TSNE {
 
