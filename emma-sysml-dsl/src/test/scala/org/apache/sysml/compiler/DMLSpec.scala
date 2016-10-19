@@ -17,15 +17,15 @@
  * under the License.
  */
 
-package eu.stratosphere.emma.sysml.compiler.integration
+package org.apache.sysml.compiler
 
-import org.emmalanguage.compiler.BaseCompilerSpec
-import eu.stratosphere.emma.sysml.api._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.api._
+import org.emmalanguage.compiler.{BaseCompilerSpec, RuntimeCompiler}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import resource._
 
 import scala.util.Random
 
@@ -33,30 +33,24 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class DMLSpec extends BaseCompilerSpec {
 
-  import compiler._
-  import Core.{Lang => core}
+  val dmlCompiler = new DMLRuntimeCompiler()
+  import dmlCompiler._
 
-  // ---------------------------------------------------------------------------
-  // Transformation pipelines
-  // ---------------------------------------------------------------------------
-  override val idPipeline: u.Expr[Any] => u.Tree = {
+  import Source.{Lang => src}
+
+  val dmlidPipeline: u.Expr[Any] => u.Tree = {
     (_: u.Expr[Any]).tree
   } andThen {
-    compiler.dmlPipeline(typeCheck = true)
-  } andThen {
-    checkCompile
+    dmlCompiler.dmlPipeline(typeCheck = true)()
   }
-
-  val toDML: u.Tree => String =
-    tree => time(Core.generateDML(tree), "generate dml")
-
+  
   "Atomics:" - {
 
     "Literals" in {
-      val acts = idPipeline(u.reify(
+      val acts = dmlidPipeline(u.reify(
         42, 42L, 3.14, 3.14F, .1e6, 'c', "string", ()
       )) collect {
-        case act@core.Lit(_) => toDML(act)
+        case act@src.Lit(_) => dmlCompiler.toDML(act)
       }
 
       val exps = Seq(
@@ -71,7 +65,7 @@ class DMLSpec extends BaseCompilerSpec {
     "References" - {
 
       "In expressions" in {
-        val acts = idPipeline(u.reify {
+        val acts = dmlidPipeline(u.reify {
           val x = 1
           val y = 2
           val * = 3
@@ -80,7 +74,7 @@ class DMLSpec extends BaseCompilerSpec {
           val `foo and bar` = 6
           x * y * `*` * `p$^s` * ⋈ * `foo and bar`
         }) collect {
-          case act@core.Ref(_) => toDML(act)
+          case act@src.Ref(_) => toDML(act)
         }
 
         val exps = Seq(
@@ -94,7 +88,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "As single line return statements" in {
 
-        val act = toDML(idPipeline(u.reify{
+        val act = dmlCompiler.toDML(dmlidPipeline(u.reify{
           val a = 5
           a
         }))
@@ -110,7 +104,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "As single line statements between other statements" in {
 
-        val act = toDML(idPipeline(u.reify{
+        val act = toDML(dmlidPipeline(u.reify{
           val a = 5
           a
           val b = 6
@@ -135,7 +129,7 @@ class DMLSpec extends BaseCompilerSpec {
   "Matrix construction" - {
 
     "from rand" in {
-      val act = toDML(idPipeline(u.reify {
+      val act = toDML(dmlidPipeline(u.reify {
         val x$01 = Matrix.rand(3, 3)
       }))
 
@@ -148,7 +142,7 @@ class DMLSpec extends BaseCompilerSpec {
     }
 
     "from zeros" in {
-      val act = toDML(idPipeline(u.reify {
+      val act = toDML(dmlidPipeline(u.reify {
         val x$01 = Matrix.zeros(3, 3)
       }))
 
@@ -161,7 +155,7 @@ class DMLSpec extends BaseCompilerSpec {
     }
 
     "from sequence" in {
-      val act = toDML(idPipeline(u.reify {
+      val act = toDML(dmlidPipeline(u.reify {
         val x$01 = Matrix(Seq(1.0, 2.0, 3.0, 4.0), 2, 2)
       }))
 
@@ -180,7 +174,7 @@ class DMLSpec extends BaseCompilerSpec {
       val schema = StructType((0 to numCols-1).map { i => StructField("C" + i, DoubleType, true) } )
       val df = sqlContext.createDataFrame(data, schema)
 
-      val act = toDML(idPipeline(u.reify {
+      val act = toDML(dmlidPipeline(u.reify {
         val A = Matrix.fromDataFrame(df)
       }))
 
@@ -196,7 +190,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "without type ascription" in {
 
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           val a = 5
         }))
 
@@ -210,7 +204,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "with type ascription" in {
 
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           val a: Int = 5
         }))
 
@@ -227,7 +221,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "without type ascription" in {
 
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           var a = 5
         }))
 
@@ -241,7 +235,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "with type ascription" in {
 
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           var a: Int = 5
         }))
 
@@ -257,7 +251,7 @@ class DMLSpec extends BaseCompilerSpec {
 
   "Matrix Multiplication" in {
 
-    val act = toDML(idPipeline(u.reify {
+    val act = toDML(dmlidPipeline(u.reify {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
       val C = A %*% B
@@ -274,7 +268,7 @@ class DMLSpec extends BaseCompilerSpec {
   }
 
   "Matrix Multiply Chain" in {
-    val act = toDML(idPipeline(u.reify {
+    val act = toDML(dmlidPipeline(u.reify {
       val A = Matrix.rand(5, 3)
       val B = Matrix.rand(3, 7)
       val C = Matrix.rand(7, 7)
@@ -294,7 +288,7 @@ class DMLSpec extends BaseCompilerSpec {
 
   "Reading a matrix" in {
 
-    val act = toDML(idPipeline(u.reify {
+    val act = toDML(dmlidPipeline(u.reify {
       val A = read("path/to/matrix.csv")
     }))
 
@@ -307,7 +301,7 @@ class DMLSpec extends BaseCompilerSpec {
   }
 
   "Writing a matrix" in {
-    val act = toDML(idPipeline(u.reify {
+    val act = toDML(dmlidPipeline(u.reify {
       val B = Matrix.zeros(3, 3)
       write(B, "path/to/matrix.csv", Format.CSV)
     }))
@@ -326,7 +320,7 @@ class DMLSpec extends BaseCompilerSpec {
     "For loop" - {
 
       "without closure modification" in {
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           for (i <- 1 to 20) {
             println(i)
           }
@@ -345,7 +339,7 @@ class DMLSpec extends BaseCompilerSpec {
 
       "with closure modificiation" in {
 
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
             var A = 5
             for (i <- 1 to 20) {
               A = A + 1
@@ -365,7 +359,7 @@ class DMLSpec extends BaseCompilerSpec {
       }
 
       "with multiple generators without closure modification" in {
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           for (i <- 1 to 10; j <- 90 to 99) {
             println(i + j)
           }
@@ -385,7 +379,7 @@ class DMLSpec extends BaseCompilerSpec {
       }
 
       "with multiple generators with closure modification" in {
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           var a = 5
           var b = 6
           for (i <- 1 to 10; j <- 90 to 99) {
@@ -414,7 +408,7 @@ class DMLSpec extends BaseCompilerSpec {
     "If-then-else" - {
 
       "with simple predicate" in {
-        val act = toDML(idPipeline(u.reify {
+        val act = toDML(dmlidPipeline(u.reify {
           val x = 5
 
           if (x == 5) {

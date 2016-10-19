@@ -1,13 +1,12 @@
-package eu.stratosphere.emma.sysml
+package org.apache.sysml.api.linalg
 
-import breeze.linalg.{Matrix => _, Vector => _, _}
-import eu.stratosphere.emma.api.SystemMLAlgorithm
-
-import scala.language.experimental.macros
-import eu.stratosphere.emma.macros.program.RewriteMacros
+import breeze.linalg.{*, DenseVector}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.sysml.api.mlcontext.{Matrix => _, _}
+import org.apache.sysml.api.mlcontext.MLContext
+import org.apache.sysml.compiler.macros.RewriteMacros
+
+import scala.language.experimental.macros
 
 package object api {
 
@@ -23,6 +22,9 @@ package object api {
   /**
     * The entry point for the systemML macro
     */
+  trait SystemMLAlgorithm[T] {
+    def run(): T
+  }
 
   final def parallelize[T](e: T): SystemMLAlgorithm[T] = macro RewriteMacros.impl[T]
 

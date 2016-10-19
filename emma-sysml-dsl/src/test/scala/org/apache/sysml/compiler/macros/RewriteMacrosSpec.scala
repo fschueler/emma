@@ -17,17 +17,16 @@
  * under the License.
  */
 
-package eu.stratosphere.emma.sysml.macros
+package org.apache.sysml.compiler.macros
 
-import eu.stratosphere.emma.api.SystemMLAlgorithm
-import org.junit.runner.RunWith
-import org.scalatest.{FreeSpec, Matchers}
-import org.scalatest.junit.JUnitRunner
-import eu.stratosphere.emma.sysml.api._
-import org.apache.spark.SparkContext
 import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
+import org.apache.sysml.api.linalg.Matrix
+import org.apache.sysml.api.linalg.api._
 import org.apache.sysml.api.mlcontext.{Matrix => MLMatrix}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FreeSpec, Matchers}
 
 import scala.util.Random
 

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package eu.stratosphere.emma.sysml.api
+package org.apache.sysml.api.linalg
 
 import breeze.linalg.DenseVector
 

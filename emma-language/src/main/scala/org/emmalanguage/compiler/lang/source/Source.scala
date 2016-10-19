@@ -266,12 +266,6 @@ trait Source extends Common
       removeImplicits(API.implicitTypes)
     }
 
-    lazy val dmlNormalize = {
-      PatternMatching.destruct
-    } andThen {
-      removeImplicits(API.implicitTypes)
-    }
-
     /** Removes implicit lists consisting of the following symbols. */
     def removeImplicits(types: Set[u.Type]): u.Tree => u.Tree = {
 
