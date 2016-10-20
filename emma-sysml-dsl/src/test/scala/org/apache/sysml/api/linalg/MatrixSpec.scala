@@ -115,10 +115,10 @@ class MatrixSpec extends BaseAPISpec {
 
       "by element" in {
         val A = Matrix.zeros(3, 3)
-        A(2, 2) = 1.0
-        val exp = Matrix(Seq(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0), 3, 3)
+        A(0, 0) = 1.0
+        val exp = Matrix(Seq(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 3, 3)
 
-        assert(A.impl(1, 1) === 1.0)
+        assert(A.impl(0) === 1.0)
       }
 
       "by row" in {
@@ -196,7 +196,7 @@ class MatrixSpec extends BaseAPISpec {
         val s = 2.0
         val R = A + s
 
-        assert(R.impl === A.impl + s)
+        assert(R.impl === A.impl.map(_ + s))
       }
 
       "a vector per column with matching length" in {
@@ -272,7 +272,7 @@ class MatrixSpec extends BaseAPISpec {
         val s = 2.0
         val R = A - s
 
-        assert(R.impl === A.impl - s)
+        assert(R.impl === A.impl.map(_ - s))
       }
 
       "a vector per column with matching length" in {

@@ -19,8 +19,6 @@
 
 package org.apache.sysml.api.linalg
 
-import breeze.linalg.DenseVector
-
 import scala.collection.immutable.NumericRange
 import scala.util.Random
 
@@ -37,26 +35,17 @@ import scala.util.Random
   * @param impl the underlying breeze vector
   * @param isTransposed indicator if the vector is a row- or column vector. Default is column
   */
-class Vector private(val impl: DenseVector[Double], val isTransposed: Boolean = false){
+class Vector private(val impl: Array[Double], val isTransposed: Boolean = false){
 
   def length = impl.length
 
-  def t: Vector = {
-    if (isTransposed)
-      new Vector(this.impl.t.inner, isTransposed = false)
-    else
-      new Vector(this.impl.t.inner, isTransposed = true)
-  }
+  def t: Vector = ???
 
-  def update(idx: Int, value: Double): Vector = {
-    val cpy = impl.copy
-    cpy.update(idx, value)
-    Vector(cpy)
-  }
+  def update(idx: Int, value: Double): Vector = ???
 
   def update(idx: Range.Inclusive, value: Vector): Vector = ???
 
-  def apply(idx: Int): Double = impl(idx)
+  def apply(idx: Int): Double = ???
 
   def apply(idx: Range.Inclusive) = ???
 
@@ -64,31 +53,31 @@ class Vector private(val impl: DenseVector[Double], val isTransposed: Boolean = 
   // V o scalar
   //////////////////////////////////////////
 
-  def +(that: Double): Vector = Vector(this.impl + that)
+  def +(that: Double): Vector = ???
 
-  def -(that: Double): Vector = Vector(this.impl - that)
+  def -(that: Double): Vector = ???
 
-  def *(that: Double): Vector = Vector(this.impl * that)
+  def *(that: Double): Vector = ???
 
-  def /(that: Double): Vector = Vector(this.impl / that)
+  def /(that: Double): Vector = ???
 
   //////////////////////////////////////////
   // V o V
   //////////////////////////////////////////
 
-  def +(that: Vector): Vector = Vector(this.impl :+ that.impl)
+  def +(that: Vector): Vector = ???
 
-  def -(that: Vector): Vector = Vector(this.impl :- that.impl)
+  def -(that: Vector): Vector = ???
 
-  def *(that: Vector): Vector = Vector(this.impl :* that.impl)
+  def *(that: Vector): Vector = ???
 
-  def /(that: Vector): Vector = Vector(this.impl :/ that.impl)
+  def /(that: Vector): Vector = ???
 
   //////////////////////////////////////////
   // V o Matrix
   //////////////////////////////////////////
 
-  def %*%(that: Matrix): Vector = Vector((this.impl.t * that.impl).inner, t = true)
+  def %*%(that: Matrix): Vector = ???
 
 }
 
@@ -97,15 +86,11 @@ class Vector private(val impl: DenseVector[Double], val isTransposed: Boolean = 
   */
 object Vector {
 
-  def apply(values: Array[Double]): Vector = new Vector(new DenseVector[Double](values))
+  def apply(values: Array[Double]): Vector = new Vector(values)
 
-  def apply(values: Seq[Double]): Vector = new Vector(new DenseVector[Double](values.toArray))
+  def apply(values: Seq[Double]): Vector = new Vector(values.toArray)
 
-  def apply(impl: DenseVector[Double]): Vector = new Vector(impl)
-
-  def apply(impl: DenseVector[Double], t: Boolean): Vector = new Vector(impl, isTransposed = t)
-
-  def apply(range: NumericRange[Double]): Vector = new Vector(new DenseVector(range.toArray))
+  def apply(range: NumericRange[Double]): Vector = new Vector(range.toArray)
 
   def apply(range: Range.Partial[Double, NumericRange[Double]]): Vector = apply(range.by(1.0))
 
@@ -115,13 +100,13 @@ object Vector {
     for (i <- 0 until length) {
       array(i) = gen(i)
     }
-    new Vector(new DenseVector[Double](array))
+    new Vector(array)
   }
 
   // TODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(length: Int) = Vector(new DenseVector[Double]((1 to length) map (_ => Random.nextDouble) toArray))
+  def rand(length: Int): Vector = ???
 
-  def ones(length: Int) = Vector(new DenseVector[Double](Array.fill[Double](length)(1.0)))
+  def ones(length: Int): Vector = ???
 
-  def zeros(length: Int) = Vector(new DenseVector[Double](Array.fill[Double](length)(0.0)))
+  def zeros(length: Int): Vector = ???
 }

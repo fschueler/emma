@@ -1,6 +1,5 @@
 package org.apache.sysml.api.linalg
 
-import breeze.linalg.{*, DenseVector}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.sysml.api.mlcontext.MLContext
@@ -34,40 +33,31 @@ package object api {
 
   def write(mat: Matrix, path: String, format: Format.FileFormat): Unit = ???
 
-  def sum(mat: Matrix): Double = breeze.linalg.sum(mat.impl)
+  def sum(mat: Matrix): Double = ???
 
-  def sum(vec: Vector): Double = breeze.linalg.sum(vec.impl)
+  def sum(vec: Vector): Double = ???
 
-  def rowSums(mat: Matrix): Vector = {
-    val s: DenseVector[Double] = breeze.linalg.sum(mat.impl(*, ::))
-    Vector(s, t = false)
-  }
+  def rowSums(mat: Matrix): Vector = ???
 
-  def colSums(mat: Matrix): Vector = {
-    val s: DenseVector[Double] = breeze.linalg.sum(mat.impl(::, *)).inner
-    Vector(s, t = true)
-  }
+  def colSums(mat: Matrix): Vector = ???
 
   def mean(mat: Matrix): Double = ???
 
   def rowMeans(mat: Matrix): Vector = ???
 
-  def colMeans(mat: Matrix): Vector = {
-    val v: breeze.linalg.DenseVector[Double] = breeze.stats.mean(mat.impl(::, *)).inner
-    Vector(v, t = true)
-  }
+  def colMeans(mat: Matrix): Vector = ???
 
-  def log(x: Double): Double = breeze.numerics.log(x)
+  def log(x: Double): Double = ???
 
-  def log(mat: Matrix): Matrix = Matrix(breeze.numerics.log(mat.impl))
+  def log(mat: Matrix): Matrix = ???
 
-  def abs(x: Double): Double = breeze.numerics.abs(x)
+  def abs(x: Double): Double = ???
 
-  def exp(b: Vector): Vector = Vector(breeze.numerics.exp(b.impl))
+  def exp(b: Vector): Vector = ???
 
-  def rowIndexMax(mat: Matrix): Vector = Vector(breeze.linalg.argmax(mat.impl(::, *)).inner.map(_.toDouble))
+  def rowIndexMax(mat: Matrix): Vector = ???
 
-  def pmax(mat: Matrix, s: Double): Matrix = Matrix(mat.impl.map(x => if (x > s) x else s))
+  def pmax(mat: Matrix, s: Double): Matrix = ???
 
   def min(mat: Matrix): Double = ???
 

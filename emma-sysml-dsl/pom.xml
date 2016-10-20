@@ -46,19 +46,8 @@
             <artifactId>junit</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_${scala.tools.version}</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.tools.version}</artifactId>
-        </dependency>
-
-        <!-- For scala DSL numerical computations -->
-        <dependency>
-            <groupId>org.scalanlp</groupId>
-            <artifactId>breeze_2.11</artifactId> <!-- or 2.11 -->
-            <version>0.12</version>
         </dependency>
 
         <!-- SystemML -->

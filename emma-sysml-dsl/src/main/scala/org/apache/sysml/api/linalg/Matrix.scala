@@ -19,8 +19,6 @@
 
 package org.apache.sysml.api.linalg
 
-import breeze.linalg.{Matrix => _, Vector => _, _}
-import breeze.numerics._
 import org.apache.spark.sql.DataFrame
 import org.apache.sysml.api.linalg.api.:::
 
@@ -38,13 +36,12 @@ import scala.util.Random
   * @param rows number of rows of the matrix
   * @param cols number of columns of the matrix
   */
-class Matrix private(val impl: DenseMatrix[Double], val rows: Int, val cols: Int) {
+class Matrix private(val impl: Array[Double], val rows: Int, val cols: Int) {
 
   //////////////////////////////////////////
   // Constructors
   //////////////////////////////////////////
 
-  private def this(rows: Int, cols: Int, values: Array[Double]) = this(new DenseMatrix(rows, cols, values), rows, cols)
 
   //////////////////////////////////////////
   // Accessors
@@ -52,9 +49,9 @@ class Matrix private(val impl: DenseMatrix[Double], val rows: Int, val cols: Int
 
   def apply(row: Int, col: Int): Double = ???
 
-  def apply(row: Int, col: :::.type ): Vector = Vector(impl(row, ::).inner, t = true)
+  def apply(row: Int, col: :::.type ): Vector = ???
 
-  def apply(row: :::.type, col: Int): Vector = Vector(impl(::, col), t = false)
+  def apply(row: :::.type, col: Int): Vector = ???
 
   def apply(rows: Range.Inclusive, cols: :::.type): Matrix = ???
 
@@ -83,36 +80,23 @@ class Matrix private(val impl: DenseMatrix[Double], val rows: Int, val cols: Int
   // M o scalar
   //////////////////////////////////////////
 
-  def +(that: Double): Matrix = Matrix(this.impl + that)
+  def +(that: Double): Matrix = ???
 
-  def -(that: Double): Matrix = Matrix(this.impl - that)
+  def -(that: Double): Matrix = ???
 
-  def *(that: Double): Matrix = Matrix(this.impl * that)
+  def *(that: Double): Matrix = ???
 
-  def /(that: Double): Matrix = Matrix(this.impl / that)
+  def /(that: Double): Matrix = ???
 
   //////////////////////////////////////////
   // columnwise M o vector (broadcast operators)
   //////////////////////////////////////////
 
-  private def broadcastRows(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = Matrix(mat.impl.mapPairs({
-    case ((row, col), value) => {
-      op(value, vec.impl(col))
-    }
-  }))
+  private def broadcastRows(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = ???
 
-  private def broadcastCols(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = Matrix(mat.impl.mapPairs({
-    case ((row, col), value) => {
-      op(value, vec.impl(row))
-    }
-  }))
+  private def broadcastCols(mat: Matrix, vec: Vector, op: (Double, Double) => Double) = ???
 
-  private def broadcast(mat: Matrix, vec: Vector)(op: (Double, Double) => Double) = {
-    if (vec.isTransposed)
-      broadcastRows(mat, vec, op)
-    else
-      broadcastCols(mat, vec, op)
-  }
+  private def broadcast(mat: Matrix, vec: Vector)(op: (Double, Double) => Double) = ???
 
   def +(that: Vector): Matrix = broadcast(this, that)(_ + _)
 
@@ -126,31 +110,31 @@ class Matrix private(val impl: DenseMatrix[Double], val rows: Int, val cols: Int
   // cellwise M o M
   //////////////////////////////////////////
 
-  def +(that: Matrix): Matrix = Matrix(this.impl :+ that.impl)
+  def +(that: Matrix): Matrix = ???
 
-  def -(that: Matrix): Matrix = Matrix(this.impl :- that.impl)
+  def -(that: Matrix): Matrix = ???
 
-  def *(that: Matrix): Matrix = Matrix(this.impl :* that.impl)
+  def *(that: Matrix): Matrix = ???
 
-  def /(that: Matrix): Matrix = Matrix(this.impl :/ that.impl)
+  def /(that: Matrix): Matrix = ???
 
   //////////////////////////////////////////
   // M x M -> M and  M x V -> V
   //////////////////////////////////////////
 
-  def %*%(that: Matrix): Matrix = Matrix(this.impl * that.impl)
+  def %*%(that: Matrix): Matrix = ???
 
-  def %*%(that: Vector): Vector = Vector(impl * that.impl)
+  def %*%(that: Vector): Vector = ???
 
   //////////////////////////////////////////
   // M operation
   //////////////////////////////////////////
 
-  def t: Matrix = Matrix(this.impl.t)
+  def t: Matrix = ???
 
-  def ^(n: Int): Matrix = Matrix(pow(this.impl, n))
+  def ^(n: Int): Matrix = ???
 
-  def map(f: Double => Double): Matrix = Matrix(impl.map(f))
+  def map(f: Double => Double): Matrix = ???
 
   // TODO: Should this return Either[Vector, Matrix] depending on if one dimension is 1?
   /**
@@ -161,14 +145,12 @@ class Matrix private(val impl: DenseMatrix[Double], val rows: Int, val cols: Int
     * @param byRow if true, matrix is reshaped my row
     * @return new matrix with the new dimensions and rearranged values
     */
-  def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix = Matrix(impl.reshape(rows, cols, View.Copy))
+  def reshape(rows: Int, cols: Int, byRow: Boolean = true): Matrix = ???
 
-  def copy: Matrix = Matrix(impl.copy)
+  def copy: Matrix = ???
 }
 
 object Matrix {
-
-  def apply(impl: DenseMatrix[Double]): Matrix = new Matrix(impl, impl.rows, impl.cols)
 
   /**
     * This should be the primary way of constructing a [[Matrix]] from a sequence of values.
@@ -176,36 +158,33 @@ object Matrix {
     * generate the [[Matrix]]
     *   1 1
     *   2 2
-    *
+    * @param impl the values that will be assignmed to the cells of the matrix in column-major order
     * @param rows number of rows of the generated matrix
     * @param cols number of columns of the generated matrix
-    * @param values the values that will be assignmed to the cells of the matrix in column-major order
     * @return a [[Matrix]] with values as cell entries and dimensionality (rows, cols)
     */
-  def apply(values: Array[Double],
-            rows: Int,
-            cols: Int): Matrix = new Matrix(new DenseMatrix[Double](rows, cols, values), rows, cols)
+  def apply(impl: Array[Double], rows: Int, cols: Int): Matrix = new Matrix(impl, rows, cols)
 
   def apply(values: Seq[Double], rows: Int, cols: Int): Matrix = apply(values.toArray, rows, cols)
 
   def fromDataFrame(df: DataFrame): Matrix = ???
 
-  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): Matrix = {
-    require(rows * cols < Int.MaxValue)
-    val array = new Array[Double](rows * cols)
-    for (i <- 0 until rows; j <- 0 until cols) {
-      array((i * cols) + j) = gen(i, j)
-    }
-    new Matrix(rows, cols, array)
-  }
+//  private[sysml] def fill(rows: Int, cols: Int)(gen: (Int, Int) => Double): Matrix = {
+//    require(rows * cols < Int.MaxValue)
+//    val array = new Array[Double](rows * cols)
+//    for (i <- 0 until rows; j <- 0 until cols) {
+//      array((i * cols) + j) = gen(i, j)
+//    }
+//    new Matrix(array, rows, cols)
+//  }
 
-  def zeros(rows: Int, cols: Int) = Matrix.fill(rows, cols)((i, j) => 0.0)
+  def zeros(rows: Int, cols: Int): Matrix = ??? // Matrix.fill(rows, cols)((i, j) => 0.0)
 
   // TODO: support more parameters (min, max, distribution, sparsity, seed)
-  def rand(rows: Int, cols: Int) = Matrix.fill(rows, cols)((i, j) => Random.nextDouble())
+  def rand(rows: Int, cols: Int): Matrix = ??? //Matrix.fill(rows, cols)((i, j) => Random.nextDouble())
 
   /** generate matrix with the vector on the diagonal */
-  def diag(vec: Vector) = Matrix(breeze.linalg.diag(vec.impl))
+  def diag(vec: Vector): Matrix = ??? //Matrix.fill(vec.length, vec.length)((i, j) => if (i == j) vec(i) else 0.0)
 
 }
 
