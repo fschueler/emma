@@ -22,13 +22,13 @@ import compiler.lang.core.Core
 import shapeless._
 
 /** Pattern matching destructuring for the Core language. */
-private[source] trait PatternMatching extends Common {
+trait PatternMatching extends Common {
   self: Source =>
 
   import Source.{Lang => src}
   import UniverseImplicits._
 
-  private[source] object PatternMatching {
+  object PatternMatching {
 
     /**
      * Eliminates irrefutable pattern matches by replacing them with value definitions corresponding
