@@ -3,6 +3,7 @@ package org.apache.sysml.api.examples
 import org.apache.sysml.api.linalg._
 import org.apache.sysml.api.linalg.api._
 
+
 object TSNE {
 
   def distanceMatrix(X: Matrix): Matrix = {

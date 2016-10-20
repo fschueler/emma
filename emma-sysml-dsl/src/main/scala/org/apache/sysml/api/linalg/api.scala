@@ -4,7 +4,7 @@ import breeze.linalg.{*, DenseVector}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.sysml.api.mlcontext.MLContext
-import org.apache.sysml.macros.RewriteMacros
+import org.apache.sysml.compiler.macros.RewriteMacros
 
 import scala.language.experimental.macros
 

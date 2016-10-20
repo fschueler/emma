@@ -14,37 +14,70 @@
  * limitations under the License.
  */
 
-package org.apache.sysml.macros
+package org.apache.sysml.compiler.macros
 
-import org.apache.sysml.compiler.DMLCompiler
-org.apache.sysml.api.linalg.api._
-
-import org.emmalanguage.compiler.{Common, MacroCompiler}
+import org.apache.sysml.api.linalg.api._
+import org.apache.sysml.compiler.lang.source.DML
+import org.emmalanguage.compiler.MacroCompiler
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
-class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
 
+class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with DML {
 
-  import Core.{Lang => core}
-  import Source.{Lang => src}
-  import universe._
+  import DML._
+  import u._
 
-  val idPipeline: c.Expr[Any] => u.Tree =
-    dmlPipeline(typeCheck = false).compose(_.tree)
+  ////////////////////////////////////////////////////////////////////////////////
+  // PIPELINE
+  ////////////////////////////////////////////////////////////////////////////////
 
-  val toDML: u.Tree => String =
-    tree => DMLTransform.generateDML(tree)
+  lazy val dmlNormalize = {
+    PatternMatching.destruct
+  } andThen {
+    Source.removeImplicits(API.implicitTypes)
+  }
+
+  override lazy val preProcess: Seq[u.Tree => u.Tree] = Seq(
+    fixLambdaTypes,
+    //stubTypeTrees,
+    unQualifyStatics,
+    normalizeStatements,
+    dmlNormalize
+  )
+
+  /** Standard pipeline suffix. Brings a tree into a form acceptable for `scalac` after being transformed. */
+  override lazy val postProcess: Seq[u.Tree => u.Tree] = Seq(
+    qualifyStatics,
+    api.Owner.at(get.enclosingOwner)
+  )
+
+  def dmlPipeline(typeCheck: Boolean = false, withPre: Boolean = true, withPost: Boolean = true)
+                 (transformations: (u.Tree => u.Tree)*): u.Tree => u.Tree = {
+
+    val bld = Seq.newBuilder[u.Tree => u.Tree]
+    //@formatter:off
+    if (typeCheck) bld += { api.Type.check(_) }
+    if (withPre)   bld ++= preProcess
+    bld ++= transformations
+    if (withPost)  bld ++= postProcess
+    //@formatter:on
+    scala.Function.chain(bld.result())
+  }
 
   /** Ordering symbols by their name. */
   implicit private val byName: Ordering[u.TermSymbol] =
   Ordering.by(_.name.toString)
 
   // liftable for input parameters
-  implicit val lift = Liftable[(String, u.TermSymbol)] { p =>
+  implicit val lift = u.Liftable[(String, u.TermSymbol)] { p =>
     q"(${p._1}, ${p._2})"
   }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // MACRO IMPLEMENTATION
+  ////////////////////////////////////////////////////////////////////////////////
 
   /**
     * The macro entry point to transform the tree and generate the DML Algorithm object
@@ -52,15 +85,15 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
     * @tparam T type of the expression
     * @return an [[SystemMLAlgorithm]] of type T that can execute the DML script and return the result of type T
     */
-  def impl[T: c.WeakTypeTag](e: c.Expr[T]) = {
+  def impl[T: c.WeakTypeTag](e: u.Expr[T]) = {
 
     // TODO this needs to be more robust for possible and impossible return types
     /** extract the return type that has to be retained from mlcontext */
-    val (outType: Type, outNames: List[Tree]) = e.tree match {
+    val (outType: u.Type, outNames: List[u.Tree]) = e.tree match {
       case u.Block(_, expr) => expr match {
         case l: u.Literal => (l.tpe, List(l.value))
         case a: u.Apply if a.symbol.name == u.TermName("apply") => (a.tpe, a.args)
-        case _ if expr.tpe =:= typeOf[Unit] =>
+        case _ if expr.tpe =:= u.typeOf[Unit] =>
           (expr.tpe, List())
         case _ =>
           (expr.tpe, List(expr))
@@ -70,10 +103,10 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
     }
 
     // generate the actual DML code
-    val dmlString = toDML(idPipeline(e))
+    val dmlString = toDML(dmlPipeline(typeCheck = false)()(e.tree))
 
     // assemble the input and output parameters to MLContext
-    val inParams  = DMLTransform.sources.toList
+    val inParams  = sources.toList
     val outParams = outNames.map(_.symbol.name.toString)
 
     // assemble the type of the return expression we want from MLContext
@@ -90,8 +123,8 @@ class RewriteMacros(val c: blackbox.Context) extends MacroCompiler with Common {
 
     // Construct algorithm object
     val alg = q"""
-      import eu.stratosphere.emma.api.SystemMLAlgorithm
-      import eu.stratosphere.emma.sysml.api._
+      import org.apache.sysml.api.linalg.api.SystemMLAlgorithm
+      import org.apache.sysml.api.linalg.api._
 
       import org.apache.sysml.api.mlcontext.{Matrix => _, _}
       import org.apache.sysml.api.mlcontext.ScriptFactory._

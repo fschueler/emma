@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.sysml.macros
+package org.apache.sysml.compiler.macros
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
