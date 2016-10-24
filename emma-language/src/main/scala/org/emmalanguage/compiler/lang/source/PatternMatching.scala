@@ -28,7 +28,7 @@ private[source] trait PatternMatching extends Common {
   import Source.{Lang => src}
   import UniverseImplicits._
 
-  private[source] object PatternMatching {
+  object PatternMatching {
 
     /**
      * Eliminates irrefutable pattern matches by replacing them with value definitions corresponding
